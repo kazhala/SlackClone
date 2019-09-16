@@ -3,7 +3,9 @@ import 'firebase/auth';
 import 'firebase/database';
 import 'firebase/storage';
 
-
+//fire base initial set up using javascript
+//different than calling rest apis, use firebase javascript sdks
+//set up frebase javascript by initialize it with module bundler
 
 
 var firebaseConfig = {

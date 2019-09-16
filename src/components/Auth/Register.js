@@ -1,31 +1,84 @@
-import React, { useState } from 'react';
+import React, { useState, useReducer } from 'react';
 import firebase from '../../firebase';
 import md5 from 'md5';
 import { Grid, Form, Segment, Button, Header, Message, Icon } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
+const registerInfoReducer = (currentState, action) => {
+    switch (action.type) {
+        case 'USERNAME':
+            return {
+                ...currentState,
+                username: action.username,
+            };
+        case 'EMAIL':
+            return {
+                ...currentState,
+                email: action.email,
+            };
+        case 'PASSWORD':
+            return {
+                ...currentState,
+                password: action.password
+            };
+        case 'PASSWORDCONFIRMATION':
+            return {
+                ...currentState,
+                passwordConfirmation: action.passwordConfirmation
+            };
+        default:
+            return currentState;
+    }
+}
+
+
 const Register = props => {
+    /*
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [passwordConfirmation, setPasswordConfirmation] = useState("");
+    */
+    const [userInput, dispatchInput] = useReducer(registerInfoReducer, {
+        username: '',
+        email: '',
+        password: '',
+        passwordConfirmation: ''
+    });
     const [errors, setErrors] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [userRef, setUserRef] = useState(firebase.database().ref('users'));
+    //const [userRef, setUserRef] = useState(firebase.database().ref('users'));
+    const userRef = firebase.database().ref('users');
 
     const handleChange = (event) => {
         switch (event.target.name) {
             case 'username':
-                setUsername(event.target.value);
+                //setUsername(event.target.value);
+                dispatchInput({
+                    type: 'USERNAME',
+                    username: event.target.value
+                })
                 break;
             case 'email':
-                setEmail(event.target.value);
+                //setEmail(event.target.value);
+                dispatchInput({
+                    type: 'EMAIL',
+                    email: event.target.value
+                })
                 break;
             case 'password':
-                setPassword(event.target.value);
+                //setPassword(event.target.value);
+                dispatchInput({
+                    type: 'PASSWORD',
+                    password: event.target.value
+                })
                 break;
             case 'passwordConfirmation':
-                setPasswordConfirmation(event.target.value);
+                //setPasswordConfirmation(event.target.value);
+                dispatchInput({
+                    type: 'PASSWORDCONFIRMATION',
+                    passwordConfirmation: event.target.value
+                })
                 break;
             default:
                 break;
@@ -33,7 +86,8 @@ const Register = props => {
     }
 
     const isFormEmpty = () => {
-        return !username.length || !password.length || !email.length || !passwordConfirmation.length;
+        //return !username.length || !password.length || !email.length || !passwordConfirmation.length;
+        return !userInput.username.length || !userInput.password.length || !userInput.email.length || !userInput.passwordConfirmation.length;
     }
 
     const formIsValid = () => {
@@ -59,9 +113,9 @@ const Register = props => {
 
 
     const passWordValid = () => {
-        if (password.length < 6 || passwordConfirmation.length < 6) {
+        if (userInput.password.length < 6 || userInput.passwordConfirmation.length < 6) {
             return false;
-        } else if (password !== passwordConfirmation) {
+        } else if (userInput.password !== userInput.passwordConfirmation) {
             return false;
         }
         return true;
@@ -75,11 +129,11 @@ const Register = props => {
             setLoading(true);
             firebase
                 .auth()
-                .createUserWithEmailAndPassword(email, password)
+                .createUserWithEmailAndPassword(userInput.email, userInput.password)
                 .then(response => {
                     console.log(response);
                     response.user.updateProfile({
-                        displayName: username,
+                        displayName: userInput.username,
                         photoURL: `http://gravatar.com/avatar/${md5(response.user.email)}?d=identicon`
                     })
                         .then(() => {
@@ -129,19 +183,19 @@ const Register = props => {
                         <Form.Input fluid
                             className={handleInputError('username')}
                             name="username" icon="user" iconPosition="left"
-                            placeholder="Username" value={username} onChange={handleChange} type="text" />
+                            placeholder="Username" value={userInput.username} onChange={handleChange} type="text" />
                         <Form.Input fluid
                             className={handleInputError('email')}
                             name="email" icon="mail" iconPosition="left"
-                            placeholder="Email" value={email} onChange={handleChange} type="email" />
+                            placeholder="Email" value={userInput.email} onChange={handleChange} type="email" />
                         <Form.Input fluid
                             className={handleInputError('password')}
                             name="password" icon="lock" iconPosition="left"
-                            placeholder="Password" value={password} onChange={handleChange} type="password" />
+                            placeholder="Password" value={userInput.password} onChange={handleChange} type="password" />
                         <Form.Input fluid
                             className={handleInputError('password')}
                             name="passwordConfirmation" icon="repeat" iconPosition="left"
-                            placeholder="Password Confirmation" value={passwordConfirmation} onChange={handleChange} type="password" />
+                            placeholder="Password Confirmation" value={userInput.passwordConfirmation} onChange={handleChange} type="password" />
                         <Button disabled={loading} className={loading ? 'loading' : ''} color="orange" fluid size="large">Submit</Button>
                     </Segment>
                 </Form>
