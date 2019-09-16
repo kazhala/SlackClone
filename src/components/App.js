@@ -1,11 +1,19 @@
 import React from 'react';
+import { Grid } from 'semantic-ui-react';
 import './App.css';
+import ColorPanel from './ColorPanel/ColorPanel';
+import SidePanel from './SidePanel/SidePanel';
+import Messages from './Messages/Messages';
+import MetaPanel from './MetaPanel/MetaPanel';
 
-function App() {
+const App = props => {
   return (
-    <div>
-      app
-    </div>
+    <Grid>
+      <ColorPanel />
+      <SidePanel />
+      <Messages />
+      <MetaPanel />
+    </Grid>
   );
 }
 
