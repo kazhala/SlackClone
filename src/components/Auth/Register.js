@@ -4,6 +4,10 @@ import md5 from 'md5';
 import { Grid, Form, Segment, Button, Header, Message, Icon } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
+//md5 create hash code for getting random avatar
+//firebase handle authentication
+
+//reducer to handle same type of input
 const registerInfoReducer = (currentState, action) => {
     switch (action.type) {
         case 'USERNAME':
@@ -33,48 +37,43 @@ const registerInfoReducer = (currentState, action) => {
 
 
 const Register = props => {
-    /*
-    const [username, setUsername] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [passwordConfirmation, setPasswordConfirmation] = useState("");
-    */
+    //useReducer to set up initial state
     const [userInput, dispatchInput] = useReducer(registerInfoReducer, {
         username: '',
         email: '',
         password: '',
         passwordConfirmation: ''
     });
+
+    //set up error state and loading state
     const [errors, setErrors] = useState([]);
     const [loading, setLoading] = useState(false);
-    //const [userRef, setUserRef] = useState(firebase.database().ref('users'));
+
+    //firebase database storing reference
     const userRef = firebase.database().ref('users');
 
+    //handle user input , 2 way binding
     const handleChange = (event) => {
         switch (event.target.name) {
             case 'username':
-                //setUsername(event.target.value);
                 dispatchInput({
                     type: 'USERNAME',
                     username: event.target.value
                 })
                 break;
             case 'email':
-                //setEmail(event.target.value);
                 dispatchInput({
                     type: 'EMAIL',
                     email: event.target.value
                 })
                 break;
             case 'password':
-                //setPassword(event.target.value);
                 dispatchInput({
                     type: 'PASSWORD',
                     password: event.target.value
                 })
                 break;
             case 'passwordConfirmation':
-                //setPasswordConfirmation(event.target.value);
                 dispatchInput({
                     type: 'PASSWORDCONFIRMATION',
                     passwordConfirmation: event.target.value
@@ -85,11 +84,12 @@ const Register = props => {
         }
     }
 
+    //check if the input field is empty
     const isFormEmpty = () => {
-        //return !username.length || !password.length || !email.length || !passwordConfirmation.length;
         return !userInput.username.length || !userInput.password.length || !userInput.email.length || !userInput.passwordConfirmation.length;
     }
 
+    //check if form contains any error
     const formIsValid = () => {
         let errorArray = [];
         let error;
@@ -107,11 +107,13 @@ const Register = props => {
         }
     }
 
+    //display all erroes
     const displayError = () => errors.map((error, index) => {
         return <p key={index}>{error.message}</p>
     });
 
 
+    //check if both password match and valid
     const passWordValid = () => {
         if (userInput.password.length < 6 || userInput.passwordConfirmation.length < 6) {
             return false;
@@ -121,22 +123,31 @@ const Register = props => {
         return true;
     }
 
+    //handle submit aciton
     const handleSubmit = (e) => {
         let errorArray = [];
         e.preventDefault();
+
+        //start the action when form is all valid
         if (formIsValid()) {
+            //clear the errors
             setErrors([]);
+            //start loading
             setLoading(true);
+
+            //call firebase sdk to set up the account, refer to firebase sdk documentation
             firebase
                 .auth()
                 .createUserWithEmailAndPassword(userInput.email, userInput.password)
                 .then(response => {
                     console.log(response);
+                    //modify the response and set displaynae and photoURL
                     response.user.updateProfile({
                         displayName: userInput.username,
                         photoURL: `http://gravatar.com/avatar/${md5(response.user.email)}?d=identicon`
                     })
                         .then(() => {
+                            //after modification, save user to the database
                             saveUser(response).then(() => {
                                 setLoading(false);
                             })
@@ -155,6 +166,7 @@ const Register = props => {
         }
     }
 
+    //save the user detail to the database
     const saveUser = response => {
         return userRef.child(response.user.uid).set({
             name: response.user.displayName,
@@ -162,6 +174,8 @@ const Register = props => {
         })
     }
 
+    //check if the inputfield contains error
+    //if error, display inputfield with error css
     const handleInputError = (inputName) => {
         if (errors.some(error => error.message.includes('all'))) {
             return 'error';
