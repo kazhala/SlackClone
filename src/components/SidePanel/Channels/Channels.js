@@ -1,6 +1,9 @@
-import React, { useState, useReducer } from 'react';
+import React, { useState, useReducer, useEffect } from 'react';
+import { useListVals } from 'react-firebase-hooks/database';
 import { Menu, Icon, Modal, Form, Input, Button, Popup } from 'semantic-ui-react';
 import firebase from '../../../firebase';
+import { connect } from 'react-redux';
+import * as actionCreators from '../../../actions/index';
 
 const channelInputReducer = (currentState, action) => {
     switch (action.type) {
@@ -24,6 +27,10 @@ const channelInputReducer = (currentState, action) => {
     }
 }
 
+//const channelRef = firebase.database().ref('channels');
+
+
+
 const Channels = props => {
     const [channels, setChannels] = useState([]);
     const [modal, setModal] = useState(false);
@@ -31,8 +38,15 @@ const Channels = props => {
         channelname: '',
         channelDetails: ''
     });
-
     const channelRef = firebase.database().ref('channels');
+
+    const [snapshots, loading, error] = useListVals(channelRef);
+
+    useEffect(() => {
+        setChannels(snapshots);
+        // eslint-disable-next-line
+    }, [loading])
+
 
     const handleChange = e => {
         switch (e.target.name) {
@@ -72,6 +86,7 @@ const Channels = props => {
                 avatar: props.user.photoURL
             }
         };
+        setChannels([...channels, newChannel]);
         channelRef
             .child(key)
             .update(newChannel)
@@ -94,6 +109,25 @@ const Channels = props => {
         }
     }
 
+    const changeChannel = (channel) => {
+        props.setChannel(channel);
+    }
+
+    const displayChannels = () => {
+        return (
+            channels.length > 0 && channels.map(channel => (
+                <Menu.Item
+                    key={channel.id}
+                    onClick={() => changeChannel(channel)}
+                    name={channel.name}
+                    style={{ opacity: 0.7 }}
+                >
+                    # {channel.name}
+                </Menu.Item>
+            ))
+        );
+    }
+
     const isFormValid = () => {
         return channelInput.channelDetails && channelInput.channelname;
     }
@@ -112,6 +146,7 @@ const Channels = props => {
                             <Icon name="add" onClick={openModal} />
                         } />
                 </Menu.Item>
+                {displayChannels()}
             </Menu.Menu>
 
             <Modal basic open={modal} onClose={closeModal}>
@@ -153,4 +188,10 @@ const Channels = props => {
     );
 }
 
-export default Channels;
+const mapDispatchToProps = dispatch => {
+    return {
+        setChannel: (channel) => dispatch(actionCreators.setCurrentChannel(channel))
+    }
+}
+
+export default connect(null, mapDispatchToProps)(Channels);

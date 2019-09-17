@@ -17,13 +17,25 @@ const user_reducer = (state = initialState, action) => {
             }
         case acitonTypes.CLEAR_USER:
             return {
-                ...initialState,
+                ...state,
                 isLoading: false
             }
-        case acitonTypes.SET_LOADING:
+        default:
+            return state;
+    }
+}
+
+const initialChannelState = {
+    currentChannel: null
+}
+
+//channel reducer
+const channel_reducer = (state = initialChannelState, action) => {
+    switch (action.type) {
+        case acitonTypes.SET_CURRENT_CHANNEL:
             return {
                 ...state,
-                isLoading: true
+                currentChannel: action.payload.currentChannel
             }
         default:
             return state;
@@ -31,7 +43,8 @@ const user_reducer = (state = initialState, action) => {
 }
 
 const rootReducer = combineReducers({
-    user: user_reducer
+    user: user_reducer,
+    channel: channel_reducer
 });
 
 export default rootReducer;

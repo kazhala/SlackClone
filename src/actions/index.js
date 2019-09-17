@@ -17,8 +17,11 @@ export const clearUser = () => {
     })
 }
 
-export const setLoading = () => {
+export const setCurrentChannel = channel => {
     return ({
-        type: actionTypes.SET_LOADING,
+        type: actionTypes.SET_CURRENT_CHANNEL,
+        payload: {
+            currentChannel: channel
+        }
     })
 }
