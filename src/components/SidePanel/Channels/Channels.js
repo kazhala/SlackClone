@@ -1,5 +1,6 @@
 import React, { useState, useReducer } from 'react';
 import { Menu, Icon, Modal, Form, Input, Button, Popup } from 'semantic-ui-react';
+import firebase from '../../../firebase';
 
 const channelInputReducer = (currentState, action) => {
     switch (action.type) {
@@ -12,6 +13,11 @@ const channelInputReducer = (currentState, action) => {
             return {
                 ...currentState,
                 channelDetails: action.channelDetails
+            }
+        case 'CLEARDETAILS':
+            return {
+                channelname: '',
+                channelDetails: ''
             }
         default:
             return currentState;
@@ -26,6 +32,7 @@ const Channels = props => {
         channelDetails: ''
     });
 
+    const channelRef = firebase.database().ref('channels');
 
     const handleChange = e => {
         switch (e.target.name) {
@@ -54,16 +61,56 @@ const Channels = props => {
         setModal(true);
     }
 
+    const addChannel = () => {
+        const key = channelRef.push().key;
+        const newChannel = {
+            id: key,
+            name: channelInput.channelname,
+            details: channelInput.channelDetails,
+            createdBy: {
+                name: props.user.displayName,
+                avatar: props.user.photoURL
+            }
+        };
+        channelRef
+            .child(key)
+            .update(newChannel)
+            .then(() => {
+                dispatchInput({
+                    type: 'CLEARDETAILS'
+                });
+                closeModal();
+                console.log('channel log');
+            })
+            .catch(error => {
+                console.log(error);
+            })
+    }
+
+    const handleSubmit = e => {
+        e.preventDefault();
+        if (isFormValid()) {
+            addChannel();
+        }
+    }
+
+    const isFormValid = () => {
+        return channelInput.channelDetails && channelInput.channelname;
+    }
 
     return (
         <React.Fragment>
 
             <Menu.Menu style={{ paddingBottom: '2em' }}>
-                <Menu.Item>
+                <Menu.Item >
                     <span>
                         <Icon name="exchange" /> CHANNELS
-                </span>{' '}
-                    ({channels.length}) <Popup content="Add a new channel" trigger={<Icon name="add" onClick={openModal} />} />
+                    </span>{' '}
+                    ({channels.length})
+                    <Popup content="Add a new channel"
+                        trigger={
+                            <Icon name="add" onClick={openModal} />
+                        } />
                 </Menu.Item>
             </Menu.Menu>
 
@@ -76,6 +123,7 @@ const Channels = props => {
                                 fluid
                                 label="Name of Channel"
                                 name="channelname"
+                                value={channelInput.channelname}
                                 onChange={handleChange}
                             />
                         </Form.Field>
@@ -84,6 +132,7 @@ const Channels = props => {
                                 fluid
                                 label="About the channel"
                                 name="channeldetails"
+                                value={channelInput.channelDetails}
                                 onChange={handleChange}
                             />
                         </Form.Field>
@@ -91,7 +140,7 @@ const Channels = props => {
                 </Modal.Content>
 
                 <Modal.Actions>
-                    <Button color="green" inverted>
+                    <Button color="green" inverted onClick={handleSubmit}>
                         <Icon name="checkmark" /> Add
                     </Button>
                     <Button color="red" inverted onClick={closeModal}>

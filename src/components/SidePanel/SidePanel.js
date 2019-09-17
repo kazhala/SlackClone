@@ -13,7 +13,7 @@ const SidePanel = props => {
             style={{ background: "#4c3c4c", fontSize: '1.2rem' }}
         >
             <UserPanel user={props.user} />
-            <Channels />
+            <Channels user={props.user} />
         </Menu>
 
     );
