@@ -35,8 +35,6 @@ const Login = props => {
     const [errors, setErrors] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    //firebase database storing reference
-    const userRef = firebase.database().ref('users');
 
     //handle user input , 2 way binding
     const handleChange = (event) => {
@@ -66,7 +64,6 @@ const Login = props => {
 
     //handle submit aciton
     const handleSubmit = (e) => {
-        let errorArray = [];
         e.preventDefault();
         if (isFormValid) {
             setErrors([]);
