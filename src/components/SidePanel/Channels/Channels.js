@@ -1,4 +1,4 @@
-import React, { useState, useReducer, useEffect } from 'react';
+import React, { useState, useReducer } from 'react';
 import { useListVals } from 'react-firebase-hooks/database';
 import { Menu, Icon, Modal, Form, Input, Button, Popup } from 'semantic-ui-react';
 import firebase from '../../../firebase';
@@ -27,12 +27,10 @@ const channelInputReducer = (currentState, action) => {
     }
 }
 
-//const channelRef = firebase.database().ref('channels');
 
 
 
 const Channels = props => {
-    const [channels, setChannels] = useState([]);
     const [modal, setModal] = useState(false);
     const [channelInput, dispatchInput] = useReducer(channelInputReducer, {
         channelname: '',
@@ -40,12 +38,8 @@ const Channels = props => {
     });
     const channelRef = firebase.database().ref('channels');
 
+    // eslint-disable-next-line
     const [snapshots, loading, error] = useListVals(channelRef);
-
-    useEffect(() => {
-        setChannels(snapshots);
-        // eslint-disable-next-line
-    }, [loading])
 
 
     const handleChange = e => {
@@ -86,7 +80,6 @@ const Channels = props => {
                 avatar: props.user.photoURL
             }
         };
-        setChannels([...channels, newChannel]);
         channelRef
             .child(key)
             .update(newChannel)
@@ -115,7 +108,7 @@ const Channels = props => {
 
     const displayChannels = () => {
         return (
-            channels.length > 0 && channels.map(channel => (
+            snapshots.length > 0 && snapshots.map(channel => (
                 <Menu.Item
                     key={channel.id}
                     onClick={() => changeChannel(channel)}
@@ -140,7 +133,7 @@ const Channels = props => {
                     <span>
                         <Icon name="exchange" /> CHANNELS
                     </span>{' '}
-                    ({channels.length})
+                    ({snapshots.length})
                     <Popup content="Add a new channel"
                         trigger={
                             <Icon name="add" onClick={openModal} />

@@ -13,7 +13,9 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 import * as actionCreators from './actions/index';
 import rootReducer from './reducers/index';
 import Spinner from './Spinner';
+import { useAuthState } from 'react-firebase-hooks/auth';
 import * as serviceWorker from './serviceWorker';
+
 
 const store = createStore(rootReducer, composeWithDevTools());
 
@@ -22,9 +24,12 @@ const store = createStore(rootReducer, composeWithDevTools());
 const Root = (props) => {
     const { history, setUser, clearUser } = props;
 
+    //eslint-disable-next-line
+    const [user, loading, error] = useAuthState(firebase.auth());
+
     //listen to the state of firebase authentication
     useEffect(() => {
-        firebase.auth().onAuthStateChanged(user => {
+        if (!loading) {
             if (user) {
                 //console.log(user);
                 setUser(user);
@@ -33,8 +38,9 @@ const Root = (props) => {
                 history.push('/login');
                 clearUser();
             }
-        })
-    }, [history, setUser, clearUser]);
+        }
+
+    }, [history, setUser, clearUser, user, loading]);
 
 
     return props.loading ? <Spinner /> : (

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Grid } from 'semantic-ui-react';
 import './App.css';
 import ColorPanel from './ColorPanel/ColorPanel';
@@ -8,6 +8,12 @@ import MetaPanel from './MetaPanel/MetaPanel';
 import { connect } from 'react-redux';
 
 const App = props => {
+  const { currentUser } = props;
+
+  useEffect(() => {
+    currentUser.displayName === null && window.location.reload();
+  }, [currentUser]);
+
   return (
     <Grid columns="equal" className="app" style={{ background: '#eee' }}>
       <ColorPanel />

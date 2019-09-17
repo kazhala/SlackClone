@@ -5,6 +5,7 @@ import Channels from './Channels/Channels';
 
 const SidePanel = props => {
     return (
+
         <Menu
             size="large"
             inverted
