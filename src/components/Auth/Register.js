@@ -4,6 +4,7 @@ import md5 from 'md5';
 import { Grid, Form, Segment, Button, Header, Message, Icon } from 'semantic-ui-react';
 import { Link } from 'react-router-dom';
 
+
 //md5 create hash code for getting random avatar
 //firebase handle authentication
 
@@ -149,8 +150,8 @@ const Register = props => {
                         .then(() => {
                             //after modification, save user to the database
                             saveUser(response).then(() => {
-                                setLoading(false);
-                            })
+                                //setLoading(false);
+                            });
                         })
                         .catch(error => {
                             console.log(error);
@@ -225,5 +226,7 @@ const Register = props => {
         </Grid>
     );
 }
+
+
 
 export default Register;

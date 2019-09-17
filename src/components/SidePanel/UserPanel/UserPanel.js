@@ -1,11 +1,15 @@
 import React from 'react';
-import { Grid, Header, Icon, Dropdown } from 'semantic-ui-react';
+import firebase from '../../../firebase';
+import { Grid, Header, Icon, Dropdown, Image } from 'semantic-ui-react';
 
 const UserPanel = props => {
+    const { user } = props;
+
+
     const dropdownOptions = () => [
         {
             key: 'user',
-            text: <span>Signed in as <strong>User</strong></span>,
+            text: <span>Signed in as <strong>{user.displayName}</strong></span>,
             disabled: true
         },
         {
@@ -14,9 +18,19 @@ const UserPanel = props => {
         },
         {
             key: 'signout',
-            text: <span>Sign out</span>
+            text: <div onClick={handleSignout}>Sign out</div>
         }
-    ]
+    ];
+
+    const handleSignout = () => {
+        firebase
+            .auth()
+            .signOut()
+            .then(() => {
+                console.log('signed out');
+            })
+    }
+
 
     return (
         <Grid>
@@ -26,18 +40,24 @@ const UserPanel = props => {
                         <Icon name="code" />
                         <Header.Content>DevChat</Header.Content>
                     </Header>
+                    <Header style={{ padding: '0.25em' }} as="h4" inverted>
+                        <Dropdown
+                            trigger={
+                                <span>
+                                    <Image src={user.photoURL} spaced="right" avatar />
+                                    {user.displayName}
+                                </span>
+                            }
+                            options={dropdownOptions()}
+                        />
+                    </Header>
                 </Grid.Row>
-                <Header style={{ padding: '0.25em' }} as="h4" inverted>
-                    <Dropdown
-                        trigger={
-                            <span>User</span>
-                        }
-                        options={dropdownOptions()}
-                    />
-                </Header>
+
             </Grid.Column>
         </Grid>
     );
 }
+
+
 
 export default UserPanel;

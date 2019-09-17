@@ -10,3 +10,15 @@ export const setUser = user => {
         }
     })
 }
+
+export const clearUser = () => {
+    return ({
+        type: actionTypes.CLEAR_USER,
+    })
+}
+
+export const setLoading = () => {
+    return ({
+        type: actionTypes.SET_LOADING,
+    })
+}

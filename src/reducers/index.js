@@ -15,6 +15,16 @@ const user_reducer = (state = initialState, action) => {
                 currentUser: action.payload.currentUser,
                 isLoading: false
             }
+        case acitonTypes.CLEAR_USER:
+            return {
+                ...initialState,
+                isLoading: false
+            }
+        case acitonTypes.SET_LOADING:
+            return {
+                ...state,
+                isLoading: true
+            }
         default:
             return state;
     }
