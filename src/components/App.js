@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Grid } from 'semantic-ui-react';
+import { Grid, Loader } from 'semantic-ui-react';
 import './App.css';
 import ColorPanel from './ColorPanel/ColorPanel';
 import SidePanel from './SidePanel/SidePanel';
@@ -24,11 +24,15 @@ const App = props => {
         key={props.currentUser && props.currentUser.id}
         user={props.currentUser} />
       <Grid.Column style={{ marginLeft: 320 }}>
-        <Messages
-          key={props.currentChannel && props.currentChannel.id}
-          currentChannel={props.currentChannel}
-          currentUser={props.currentUser}
-        />
+        {/*change to condition re-renering !!!!
+          currentChannel && currentUser
+        */}
+        {(props.currentUser && props.currentChannel) ?
+          <Messages
+            key={props.currentUser && props.currentUser.id}
+            currentChannel={props.currentChannel}
+            currentUser={props.currentUser}
+          /> : <Loader active>Loading Messages</Loader>}
       </Grid.Column>
       <Grid.Column width={4}>
         <MetaPanel />

@@ -11,17 +11,14 @@ const Messages = props => {
 
     const messagesRef = firebase.database().ref('messages');
 
-
-
-    const [snapshots, loading, error] = useListVals(currentChannel ? messagesRef.child(currentChannel.id) : null);
-
+    //eslint-disable-next-line
+    const [snapshots, loading, error] = useListVals(messagesRef.child(currentChannel.id));
 
 
     useEffect(() => {
         return () => {
-            if (!loading) {
-                messagesRef.child(messagesRef.child(currentChannel.id));
-            }
+            console.log('closed');
+            messagesRef.off();
         }
         //eslint-disable-next-line
     }, []);
@@ -32,7 +29,7 @@ const Messages = props => {
             <MessagesHeader />
             <Segment>
                 <Comment.Group className="messages">
-                    {snapshots && snapshots.map(message => (
+                    {snapshots.map(message => (
                         <Message
                             key={message.timestamp}
                             message={message}
