@@ -1,10 +1,11 @@
-import React, { useState, useReducer } from 'react';
+import React, { useState, useReducer, useEffect, useCallback } from 'react';
 import { useListVals } from 'react-firebase-hooks/database';
 import { Menu, Icon, Modal, Form, Input, Button, Popup } from 'semantic-ui-react';
 import firebase from '../../../firebase';
 import { connect } from 'react-redux';
 import * as actionCreators from '../../../actions/index';
 
+//handle channel details
 const channelInputReducer = (currentState, action) => {
     switch (action.type) {
         case 'CHANNELNAME':
@@ -31,17 +32,50 @@ const channelInputReducer = (currentState, action) => {
 
 
 const Channels = props => {
+    const { setChannel } = props;
+
+    //handle modal display
     const [modal, setModal] = useState(false);
+
+    const [activeChannel, setActiveChannel] = useState('');
+
+    const [firstLoad, setFirstLoad] = useState(true);
+
+    //local reducer to handle multiple state manipulation
     const [channelInput, dispatchInput] = useReducer(channelInputReducer, {
         channelname: '',
         channelDetails: ''
     });
+
+    //firebase databse listner reference
     const channelRef = firebase.database().ref('channels');
 
+    //firebase databse listner + data
     // eslint-disable-next-line
     const [snapshots, loading, error] = useListVals(channelRef);
 
+    //call redux to set new seleted channel
+    const changeChannel = useCallback((channel) => {
+        setActiveChannel(channel.id);
+        setChannel(channel);
+    }, [setChannel]);
 
+    const setFirstChannel = useCallback(() => {
+        if (firstLoad && snapshots.length > 0) {
+            changeChannel(snapshots[0]);
+            setFirstLoad(false);
+        }
+    }, [snapshots, firstLoad, changeChannel]);
+
+
+    useEffect(() => {
+        console.log('loaded');
+        setFirstChannel();
+    }, [setFirstChannel]);
+
+
+
+    //handle input filed change when adding new channel
     const handleChange = e => {
         switch (e.target.name) {
             case 'channelname':
@@ -61,16 +95,21 @@ const Channels = props => {
         }
     }
 
+    //close modal action
     const closeModal = () => {
         setModal(false);
     }
 
+    //open modal aciton
     const openModal = () => {
         setModal(true);
     }
 
+    //handles the aciton of adding a new channel
     const addChannel = () => {
+        //creating a new field in fireabase databse
         const key = channelRef.push().key;
+        //create a new object to be stored
         const newChannel = {
             id: key,
             name: channelInput.channelname,
@@ -80,6 +119,8 @@ const Channels = props => {
                 avatar: props.user.photoURL
             }
         };
+
+        //store the new object in the created new field
         channelRef
             .child(key)
             .update(newChannel)
@@ -88,13 +129,14 @@ const Channels = props => {
                     type: 'CLEARDETAILS'
                 });
                 closeModal();
-                console.log('channel log');
+                //console.log('channel log');
             })
             .catch(error => {
                 console.log(error);
             })
     }
 
+    //handle adding new channel
     const handleSubmit = e => {
         e.preventDefault();
         if (isFormValid()) {
@@ -102,10 +144,7 @@ const Channels = props => {
         }
     }
 
-    const changeChannel = (channel) => {
-        props.setChannel(channel);
-    }
-
+    //loop to display all channels retrieved from databse
     const displayChannels = () => {
         return (
             snapshots.length > 0 && snapshots.map(channel => (
@@ -114,6 +153,7 @@ const Channels = props => {
                     onClick={() => changeChannel(channel)}
                     name={channel.name}
                     style={{ opacity: 0.7 }}
+                    active={channel.id === activeChannel}
                 >
                     # {channel.name}
                 </Menu.Item>
@@ -121,6 +161,7 @@ const Channels = props => {
         );
     }
 
+    //check if field is empty
     const isFormValid = () => {
         return channelInput.channelDetails && channelInput.channelname;
     }

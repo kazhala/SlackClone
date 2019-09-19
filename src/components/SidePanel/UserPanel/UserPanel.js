@@ -5,7 +5,7 @@ import { Grid, Header, Icon, Dropdown, Image } from 'semantic-ui-react';
 const UserPanel = props => {
     const { user } = props;
 
-
+    //selectable in the dropdown menu
     const dropdownOptions = () => [
         {
             key: 'user',
@@ -22,6 +22,7 @@ const UserPanel = props => {
         }
     ];
 
+    //handle action when user signout
     const handleSignout = () => {
         firebase
             .auth()
