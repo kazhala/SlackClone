@@ -60,6 +60,10 @@ const MessagesForm = props => {
         }
     }
 
+    const uploadFile = (file, metada) => {
+        console.log(file, metada);
+    }
+
     return (
         <Segment className="message__form">
             <Input
@@ -80,6 +84,7 @@ const MessagesForm = props => {
                 <FileModal
                     modal={modal}
                     closeModal={closeModal}
+                    uploadFile={uploadFile}
                 />
             </Button.Group>
 
