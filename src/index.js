@@ -31,7 +31,6 @@ const Root = (props) => {
     useEffect(() => {
         if (!loading) {
             if (user) {
-                //console.log(user);
                 setUser(user);
                 history.push('/');
             } else {

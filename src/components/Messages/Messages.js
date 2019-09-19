@@ -9,10 +9,15 @@ import { useListVals } from 'react-firebase-hooks/database';
 const Messages = props => {
     const { currentChannel, currentUser } = props;
 
+
     const messagesRef = firebase.database().ref('messages');
 
     //eslint-disable-next-line
     const [snapshots, loading, error] = useListVals(messagesRef.child(currentChannel.id));
+
+
+
+
 
 
     useEffect(() => {
@@ -28,8 +33,9 @@ const Messages = props => {
         <React.Fragment>
             <MessagesHeader />
             <Segment>
+
                 <Comment.Group className="messages">
-                    {snapshots.map(message => (
+                    {snapshots.length > 0 && snapshots.map(message => (
                         <Message
                             key={message.timestamp}
                             message={message}
@@ -37,6 +43,8 @@ const Messages = props => {
                         />
                     ))}
                 </Comment.Group>
+
+
             </Segment>
             <MessagesForm
                 messagesRef={messagesRef}

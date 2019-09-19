@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import firebase from '../../../firebase';
 import { Segment, Button, Input } from 'semantic-ui-react';
+import FileModal from '../FileModal/FileModal';
 
 const MessagesForm = props => {
     const { messagesRef, currentChannel, currentUser } = props;
@@ -11,11 +12,19 @@ const MessagesForm = props => {
 
     const [errors, setErrors] = useState([]);
 
+    const [modal, setModal] = useState(false);
+
     const handleInputChange = e => {
         setUserInput(e.target.value);
     }
 
+    const openModal = () => {
+        setModal(true);
+    }
 
+    const closeModal = () => {
+        setModal(false);
+    }
 
     const createMessage = () => {
         const message = {
@@ -67,8 +76,11 @@ const MessagesForm = props => {
 
             <Button.Group icon widths="2">
                 <Button color="orange" content="Add Reply" labelPosition="left" icon="edit" onClick={sendMessage} loading={loading} />
-                <Button color="teal" content="Upload Media" labelPosition="right" icon="cloud upload" />
-
+                <Button color="teal" content="Upload Media" labelPosition="right" icon="cloud upload" onClick={openModal} />
+                <FileModal
+                    modal={modal}
+                    closeModal={closeModal}
+                />
             </Button.Group>
 
         </Segment>
