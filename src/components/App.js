@@ -20,9 +20,15 @@ const App = props => {
   return (
     <Grid columns="equal" className="app" style={{ background: '#eee' }}>
       <ColorPanel />
-      <SidePanel user={props.currentUser} />
+      <SidePanel
+        key={props.currentUser && props.currentUser.id}
+        user={props.currentUser} />
       <Grid.Column style={{ marginLeft: 320 }}>
-        <Messages />
+        <Messages
+          key={props.currentChannel && props.currentChannel.id}
+          currentChannel={props.currentChannel}
+          currentUser={props.currentUser}
+        />
       </Grid.Column>
       <Grid.Column width={4}>
         <MetaPanel />
@@ -34,6 +40,7 @@ const App = props => {
 const mapStateToProps = state => {
   return {
     currentUser: state.user.currentUser,
+    currentChannel: state.channel.currentChannel
   }
 }
 
