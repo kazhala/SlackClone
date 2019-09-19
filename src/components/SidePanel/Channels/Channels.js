@@ -69,9 +69,17 @@ const Channels = props => {
 
 
     useEffect(() => {
-        console.log('loaded');
+        //console.log('loaded');
         setFirstChannel();
-    }, [setFirstChannel]);
+    }, [setFirstChannel, channelRef]);
+
+    useEffect(() => {
+        return () => {
+            console.log('closed');
+            channelRef.off();
+        }
+        // eslint-disable-next-line
+    }, []);
 
 
 
