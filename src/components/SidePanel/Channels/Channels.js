@@ -1,6 +1,6 @@
 import React, { useState, useReducer, useEffect, useCallback } from 'react';
 import { useListVals } from 'react-firebase-hooks/database';
-import { Menu, Icon, Modal, Form, Input, Button, Popup } from 'semantic-ui-react';
+import { Menu, Icon, Modal, Form, Input, Button, Popup, Loader } from 'semantic-ui-react';
 import firebase from '../../../firebase';
 import { connect } from 'react-redux';
 import * as actionCreators from '../../../actions/index';
@@ -155,7 +155,7 @@ const Channels = props => {
     //loop to display all channels retrieved from databse
     const displayChannels = () => {
         return (
-            snapshots.length > 0 && snapshots.map(channel => (
+            snapshots.length > 0 ? snapshots.map(channel => (
                 <Menu.Item
                     key={channel.id}
                     onClick={() => changeChannel(channel)}
@@ -165,7 +165,7 @@ const Channels = props => {
                 >
                     # {channel.name}
                 </Menu.Item>
-            ))
+            )) : <Loader active inverted>Loading channels</Loader>
         );
     }
 

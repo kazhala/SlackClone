@@ -15,9 +15,7 @@ const MessagesForm = props => {
         setUserInput(e.target.value);
     }
 
-    console.log(currentUser);
-    console.log(messagesRef);
-    console.log(currentChannel);
+
 
     const createMessage = () => {
         const message = {
@@ -68,7 +66,7 @@ const MessagesForm = props => {
             />
 
             <Button.Group icon widths="2">
-                <Button color="orange" content="Add Reply" labelPosition="left" icon="edit" onClick={sendMessage} />
+                <Button color="orange" content="Add Reply" labelPosition="left" icon="edit" onClick={sendMessage} loading={loading} />
                 <Button color="teal" content="Upload Media" labelPosition="right" icon="cloud upload" />
 
             </Button.Group>
