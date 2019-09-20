@@ -15,10 +15,12 @@ const MessagesHeader = props => {
             </Header>
             <Header floated="right">
                 <Input
+                    loading={props.searchLoading}
                     size="mini"
                     icon="search"
                     name="searchTerm"
                     placeholder="Search Messages"
+                    onChange={props.handleSearch}
                 />
             </Header>
         </Segment>

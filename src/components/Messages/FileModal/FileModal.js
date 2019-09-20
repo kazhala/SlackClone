@@ -4,10 +4,13 @@ import mime from 'mime-types';
 
 const FileModal = props => {
 
+    //initial no file
     const [file, setFile] = useState(null);
 
+    //set allowed file type
     const authorized = ['image/jpeg', 'image/png'];
 
+    //read and save the input file to state
     const addFile = (e) => {
         const uploadedFile = e.target.files[0];
         if (uploadedFile) {
@@ -15,6 +18,7 @@ const FileModal = props => {
         }
     }
 
+    //us mime to conver to readable file type
     const sendFile = () => {
         if (file !== null) {
             if (isAuthorized(file.name)) {
@@ -32,7 +36,8 @@ const FileModal = props => {
         setFile(null);
     }
 
-
+    //use mime to convert to readable file type
+    //check if the file type is included in the authorized type
     const isAuthorized = filename => {
         return authorized.includes(mime.lookup(filename));
     }

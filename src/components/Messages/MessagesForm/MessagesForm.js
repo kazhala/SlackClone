@@ -123,6 +123,7 @@ const MessagesForm = props => {
         const tempErr = [];
         if (percent === 100) {
             //get the image downloadURL and then store it in message so that it could be displayed in the chat
+            //set timeout to prevent large image firefox handling too slow
             const timer = setTimeout(() => {
                 uploadTask.snapshot.ref
                     .getDownloadURL()
@@ -141,6 +142,7 @@ const MessagesForm = props => {
         //eslint-disable-next-line
     }, [percent])
 
+    //send set and store the image in the database
     const sendFileMessage = (fileUrl, ref, pathToUpload) => {
         ref
             .child(pathToUpload)
