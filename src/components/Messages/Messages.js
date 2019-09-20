@@ -16,8 +16,18 @@ const Messages = props => {
     const [snapshots, loading, error] = useListVals(messagesRef.child(currentChannel.id));
 
 
+    const displayChannelName = channel => channel ? `#${channel.name}` : '';
 
-
+    const countUniqUsers = () => {
+        const count = snapshots.reduce((acc, message) => {
+            if (!acc.includes(message.user.name)) {
+                acc.push(message.user.name);
+            }
+            return acc;
+        }, []);
+        const display = `${count.length} users`;
+        return display;
+    }
 
 
     useEffect(() => {
@@ -31,7 +41,10 @@ const Messages = props => {
 
     return (
         <React.Fragment>
-            <MessagesHeader />
+            <MessagesHeader
+                channelName={displayChannelName(currentChannel)}
+                userCount={countUniqUsers()}
+            />
             <Segment>
 
                 <Comment.Group className="messages">

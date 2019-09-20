@@ -6,11 +6,11 @@ const MessagesHeader = props => {
         <Segment clearing>
             <Header fluid="true" as="h2" floated="left" style={{ marginBottom: 0 }}>
                 <span>
-                    Channel1
+                    {props.channelName}
                     <Icon name={"star outline"} color="black" />
                 </span>
                 <Header.Subheader>
-                    2 users
+                    {props.userCount}
                 </Header.Subheader>
             </Header>
             <Header floated="right">
