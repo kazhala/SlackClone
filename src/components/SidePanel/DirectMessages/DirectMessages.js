@@ -31,7 +31,7 @@ const DirectMessages = props => {
                 }
             })
         }
-    }, [loading])
+    }, [loading, user, snapshots])
 
     useEffect(() => {
         if (onSnapshots) {
@@ -43,7 +43,8 @@ const DirectMessages = props => {
                 }
             })
         }
-    }, [onSnapshots])
+        //eslint-disable-next-line
+    }, [onSnapshots, user])
 
     const addStatusToUser = (userid, connected = true) => {
         const updatedUser = users.reduce((acc, newuser) => {
@@ -70,6 +71,7 @@ const DirectMessages = props => {
                 addStatusToUser(key, false);
             }
         })
+        //eslint-disable-next-line
     }, [presenceSnap])
 
 
