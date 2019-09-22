@@ -6,11 +6,11 @@ import MessagesForm from './MessagesForm/MessagesForm';
 import Message from './Message/Message';
 import { useListVals } from 'react-firebase-hooks/database';
 
+//firebase databse reference
+const messagesRef = firebase.database().ref('messages');
 const Messages = props => {
     const { currentChannel, currentUser } = props;
 
-    //firebase databse reference
-    const messagesRef = firebase.database().ref('messages');
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
@@ -42,7 +42,6 @@ const Messages = props => {
             console.log('closed');
             messagesRef.off();
         }
-        //eslint-disable-next-line
     }, []);
 
     const handleSearch = e => {

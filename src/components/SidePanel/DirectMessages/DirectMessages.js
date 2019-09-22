@@ -11,6 +11,8 @@ const DirectMessages = props => {
 
     const [users, setUsers] = useState([]);
 
+    const [statusUser, setStatusUser] = useState([]);
+
     //eslint-disable-next-line
     const [snapshots, loading, error] = useList(usersRef);
     //eslint-disable-next-line
@@ -43,20 +45,20 @@ const DirectMessages = props => {
                 }
             })
         }
-        //eslint-disable-next-line
-    }, [onSnapshots, user])
+    }, [onSnapshots, user, presenceRef])
 
-    const addStatusToUser = (userid, connected = true) => {
-        const updatedUser = users.reduce((acc, newuser) => {
-            if (userid === newuser.uid) {
-                newuser['status'] = `${connected ? "online" : "offline"}`;
-            }
-            return acc.concat(newuser);
-        }, []);
-        setUsers(updatedUser);
-    }
+
 
     useEffect(() => {
+        const addStatusToUser = (userid, connected = true) => {
+            const updatedUser = users.reduce((acc, newuser) => {
+                if (userid === newuser.uid) {
+                    newuser['status'] = `${connected ? "online" : "offline"}`;
+                }
+                return acc.concat(newuser);
+            }, []);
+            setStatusUser(updatedUser);
+        }
         users.forEach(tempuser => {
             let exist = false;
             let key = tempuser.uid;
@@ -71,12 +73,10 @@ const DirectMessages = props => {
                 addStatusToUser(key, false);
             }
         })
-        //eslint-disable-next-line
-    }, [presenceSnap])
+    }, [presenceSnap, users])
 
 
     const isUserOnline = contactUser => contactUser.status === 'online';
-
 
     return (
         <Menu.Menu className="menu">
@@ -84,9 +84,9 @@ const DirectMessages = props => {
                 <span>
                     <Icon name="mail" /> DIRECT MESSAGES
             </span> {' '}
-                ({users.length})
+                ({statusUser.length})
             </Menu.Item>
-            {users.map(contactUser => (
+            {statusUser.map(contactUser => (
                 <Menu.Item
                     key={contactUser.uid}
                     onClick={() => console.log(contactUser)}

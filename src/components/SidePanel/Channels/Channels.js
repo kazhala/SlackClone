@@ -29,6 +29,8 @@ const channelInputReducer = (currentState, action) => {
 }
 
 
+//firebase databse listner reference
+const channelRef = firebase.database().ref('channels');
 
 
 const Channels = props => {
@@ -47,8 +49,6 @@ const Channels = props => {
         channelDetails: ''
     });
 
-    //firebase databse listner reference
-    const channelRef = firebase.database().ref('channels');
 
     //firebase databse listner + data
     // eslint-disable-next-line
@@ -71,14 +71,13 @@ const Channels = props => {
     useEffect(() => {
         //console.log('loaded');
         setFirstChannel();
-    }, [setFirstChannel, channelRef]);
+    }, [setFirstChannel]);
 
     useEffect(() => {
         return () => {
             console.log('closed');
             channelRef.off();
         }
-        // eslint-disable-next-line
     }, []);
 
 

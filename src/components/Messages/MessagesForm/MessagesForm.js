@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import firebase from '../../../firebase';
 import uuidv4 from 'uuid/v4';
 import { Segment, Button, Input } from 'semantic-ui-react';
@@ -42,7 +42,7 @@ const MessagesForm = props => {
     }
 
     //create a message object to be stored in the database
-    const createMessage = (fileUrl = null) => {
+    const createMessage = useCallback((fileUrl = null) => {
         const message = {
             timestamp: firebase.database.ServerValue.TIMESTAMP,
             user: {
@@ -58,7 +58,7 @@ const MessagesForm = props => {
             message["content"] = userInput;
         }
         return message;
-    }
+    }, [currentUser, userInput])
 
     //send the message to the databse
     const sendMessage = () => {
@@ -118,6 +118,20 @@ const MessagesForm = props => {
 
     //call back for finish uploading the image to the firebase storage
     useEffect(() => {
+        //send set and store the image in the database
+        const sendFileMessage = (fileUrl, ref, pathToUpload) => {
+            ref
+                .child(pathToUpload)
+                .push()
+                .set(createMessage(fileUrl))
+                .then(() => {
+                    setUploadState('done');
+                })
+                .catch(err => {
+                    console.log(err);
+                    setErrors(e => e.concat(err));
+                });
+        }
         //if 100% completed
         console.log('loaded');
         const tempErr = [];
@@ -139,23 +153,7 @@ const MessagesForm = props => {
             }, 3000);
             return () => clearTimeout(timer);
         }
-        //eslint-disable-next-line
-    }, [percent])
-
-    //send set and store the image in the database
-    const sendFileMessage = (fileUrl, ref, pathToUpload) => {
-        ref
-            .child(pathToUpload)
-            .push()
-            .set(createMessage(fileUrl))
-            .then(() => {
-                setUploadState('done');
-            })
-            .catch(err => {
-                console.log(err);
-                setErrors(errors.concat(err));
-            });
-    }
+    }, [percent, messagesRef, pathToUpload, createMessage, uploadTask])
 
 
     return (
