@@ -8,17 +8,20 @@ import { useListVals } from 'react-firebase-hooks/database';
 
 //firebase databse reference
 const messagesRef = firebase.database().ref('messages');
+const privateMessagesRef = firebase.database().ref('privateMessages');
 const Messages = props => {
-    const { currentChannel, currentUser } = props;
+    const { currentChannel, currentUser, isPrivateChannel } = props;
 
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResult, setSearchResult] = useState([]);
 
+    const getMessagesRef = isPrivateChannel ? privateMessagesRef : messagesRef;
+
     //using installed firebase hooks to listen for changes
     //eslint-disable-next-line
-    const [snapshots, loading, error] = useListVals(messagesRef.child(currentChannel.id));
+    const [snapshots, loading, error] = useListVals(getMessagesRef.child(currentChannel.id));
 
     //display the channel detail 
     const displayChannelName = channel => {
@@ -80,7 +83,7 @@ const Messages = props => {
                 userCount={countUniqUsers()}
                 handleSearch={handleSearch}
                 searchLoading={searchLoading}
-                isPrivateChannel={props.isPrivateChannel}
+                isPrivateChannel={isPrivateChannel}
             />
             <Segment>
 
@@ -105,7 +108,8 @@ const Messages = props => {
             <MessagesForm
                 messagesRef={messagesRef}
                 currentUser={currentUser}
-                isPrivateChannel={props.isPrivateChannel}
+                isPrivateChannel={isPrivateChannel}
+                getMessagesRef={getMessagesRef}
                 currentChannel={currentChannel} />
         </React.Fragment>
     );

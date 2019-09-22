@@ -6,7 +6,7 @@ import FileModal from '../FileModal/FileModal';
 import ProgressBar from '../ProgressBar/ProgressBar';
 
 const MessagesForm = props => {
-    const { messagesRef, currentChannel, currentUser } = props;
+    const { messagesRef, currentChannel, currentUser, getMessagesRef } = props;
 
     //firebase storage reference
     const storageRef = firebase.storage().ref();
@@ -67,7 +67,7 @@ const MessagesForm = props => {
             //display loading
             setLoading(true);
             //go to a channel, push a new entry, set the value to new message
-            messagesRef
+            getMessagesRef
                 .child(currentChannel.id)
                 .push()
                 .set(createMessage())
@@ -88,10 +88,18 @@ const MessagesForm = props => {
     //file path reference for image upload
     const pathToUpload = currentChannel.id;
 
+    const getPath = () => {
+        if (props.isPrivateChannel) {
+            return `chat/private-${currentChannel.id}`;
+        } else {
+            return `chat/public`;
+        }
+    }
+
     //set up image upload
     const uploadFile = (file, metadata) => {
         //generate a unique key for each image
-        const filePath = `chat/public/${uuidv4()}.png`;
+        const filePath = `${getPath()}/${uuidv4()}.png`;
         setUploadState('uploading');
         //store the image
         setUploadTask(storageRef.child(filePath).put(file, metadata));
@@ -142,7 +150,7 @@ const MessagesForm = props => {
                 uploadTask.snapshot.ref
                     .getDownloadURL()
                     .then(downloadUrl => {
-                        sendFileMessage(downloadUrl, messagesRef, pathToUpload);
+                        sendFileMessage(downloadUrl, getMessagesRef, pathToUpload);
                         setPercent(0);
                     })
                     .catch(err => {
@@ -155,7 +163,7 @@ const MessagesForm = props => {
             }, 3000);
             return () => clearTimeout(timer);
         }
-    }, [percent, messagesRef, pathToUpload, createMessage, uploadTask])
+    }, [percent, getMessagesRef, pathToUpload, createMessage, uploadTask])
 
 
     return (
