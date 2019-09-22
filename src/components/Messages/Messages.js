@@ -21,7 +21,9 @@ const Messages = props => {
     const [snapshots, loading, error] = useListVals(messagesRef.child(currentChannel.id));
 
     //display the channel detail 
-    const displayChannelName = channel => channel ? `#${channel.name}` : '';
+    const displayChannelName = channel => {
+        return channel ? `${props.isPrivateChannel ? '@' : '#'}${channel.name}` : '';
+    }
 
     //count the number of users in the channel
     const countUniqUsers = () => {
@@ -49,6 +51,8 @@ const Messages = props => {
         setSearchLoading(true);
     }
 
+    //handle the user search input, set a timeout so that it won't re-render immediatly
+    //and also show a spinner
     useEffect(() => {
         if (searchLoading && snapshots) {
             const timer = setTimeout(() => {
@@ -76,6 +80,7 @@ const Messages = props => {
                 userCount={countUniqUsers()}
                 handleSearch={handleSearch}
                 searchLoading={searchLoading}
+                isPrivateChannel={props.isPrivateChannel}
             />
             <Segment>
 
@@ -100,6 +105,7 @@ const Messages = props => {
             <MessagesForm
                 messagesRef={messagesRef}
                 currentUser={currentUser}
+                isPrivateChannel={props.isPrivateChannel}
                 currentChannel={currentChannel} />
         </React.Fragment>
     );

@@ -32,6 +32,7 @@ const App = props => {
             key={props.currentUser && props.currentUser.id}
             currentChannel={props.currentChannel}
             currentUser={props.currentUser}
+            isPrivateChannel={props.isPrivateChannel}
           /> : <Loader active>Loading Messages</Loader>}
       </Grid.Column>
       <Grid.Column width={4}>
@@ -44,7 +45,8 @@ const App = props => {
 const mapStateToProps = state => {
   return {
     currentUser: state.user.currentUser,
-    currentChannel: state.channel.currentChannel
+    currentChannel: state.channel.currentChannel,
+    isPrivateChannel: state.channel.isPrivateChannel
   }
 }
 

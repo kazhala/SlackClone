@@ -34,7 +34,7 @@ const channelRef = firebase.database().ref('channels');
 
 
 const Channels = props => {
-    const { setChannel } = props;
+    const { setChannel, setPrivateChannel } = props;
 
     //handle modal display
     const [modal, setModal] = useState(false);
@@ -58,7 +58,8 @@ const Channels = props => {
     const changeChannel = useCallback((channel) => {
         setActiveChannel(channel.id);
         setChannel(channel);
-    }, [setChannel]);
+        setPrivateChannel(false);
+    }, [setChannel, setPrivateChannel]);
 
     const setFirstChannel = useCallback(() => {
         if (firstLoad && snapshots.length > 0) {
@@ -231,7 +232,8 @@ const Channels = props => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        setChannel: (channel) => dispatch(actionCreators.setCurrentChannel(channel))
+        setChannel: (channel) => dispatch(actionCreators.setCurrentChannel(channel)),
+        setPrivateChannel: (isPrivateChannel) => dispatch(actionCreators.setPrivateChannel(isPrivateChannel)),
     }
 }
 

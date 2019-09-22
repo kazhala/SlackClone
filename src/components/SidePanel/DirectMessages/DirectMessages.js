@@ -2,15 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { Menu, Icon } from 'semantic-ui-react';
 import firebase from '../../../firebase';
 import { useList, useObjectVal } from 'react-firebase-hooks/database';
+import { connect } from 'react-redux';
+import * as actionCreators from '../../../actions/index';
 
 const DirectMessages = props => {
     const { user } = props;
+    //firebase reference
     const usersRef = firebase.database().ref('users');
+    //firebase detect user login function reference
     const connectedRef = firebase.database().ref('.info/connected');
     const presenceRef = firebase.database().ref('presence');
 
+    //loaded users with default offline status
     const [users, setUsers] = useState([]);
 
+    //updated users with uptodate status
     const [statusUser, setStatusUser] = useState([]);
 
     //eslint-disable-next-line
@@ -20,6 +26,8 @@ const DirectMessages = props => {
     //eslint-disable-next-line
     const [presenceSnap, presenceLoading, presenceError] = useList(presenceRef);
 
+    //load all the users from database after mounted
+    //exclude current user
     useEffect(() => {
         if (!loading && snapshots) {
             let loadedUsers = [];
@@ -35,6 +43,8 @@ const DirectMessages = props => {
         }
     }, [loading, user, snapshots])
 
+    //put the current user on the presence list in databse
+    //remove user from list when user disconnect
     useEffect(() => {
         if (onSnapshots) {
             const ref = presenceRef.child(user.uid);
@@ -47,8 +57,8 @@ const DirectMessages = props => {
         }
     }, [onSnapshots, user, presenceRef])
 
-
-
+    //check if user is in the presence list, if in, add login status to user
+    //if not, add offline status to user
     useEffect(() => {
         const addStatusToUser = (userid, connected = true) => {
             const updatedUser = users.reduce((acc, newuser) => {
@@ -78,6 +88,22 @@ const DirectMessages = props => {
 
     const isUserOnline = contactUser => contactUser.status === 'online';
 
+    const changeChannel = targetUser => {
+        const channelId = getChannelId(targetUser.uid);
+        const channelData = {
+            id: channelId,
+            name: targetUser.name,
+        }
+        props.setCurrentChannel(channelData);
+        props.setPrivateChannel(true);
+    }
+
+    const getChannelId = userId => {
+        const currentUserId = user.uid;
+        return userId < currentUserId ? `${userId}/${currentUserId}` :
+            `${currentUserId}/${userId}`
+    }
+
     return (
         <Menu.Menu className="menu">
             <Menu.Item>
@@ -89,7 +115,7 @@ const DirectMessages = props => {
             {statusUser.map(contactUser => (
                 <Menu.Item
                     key={contactUser.uid}
-                    onClick={() => console.log(contactUser)}
+                    onClick={() => changeChannel(contactUser)}
                     style={{ opacity: 0.7, fontStyle: "italic" }}
                 >
                     <Icon name="circle" color={isUserOnline(contactUser) ? 'green' : 'red'} />
@@ -100,4 +126,11 @@ const DirectMessages = props => {
     );
 }
 
-export default DirectMessages;
+const mapDispatchToProps = dispatch => {
+    return {
+        setCurrentChannel: (channelData) => dispatch(actionCreators.setCurrentChannel(channelData)),
+        setPrivateChannel: (isPrivateChannel) => dispatch(actionCreators.setPrivateChannel(isPrivateChannel)),
+    }
+}
+
+export default connect(null, mapDispatchToProps)(DirectMessages);

@@ -133,7 +133,7 @@ const MessagesForm = props => {
                 });
         }
         //if 100% completed
-        console.log('loaded');
+        //console.log('loaded');
         const tempErr = [];
         if (percent === 100) {
             //get the image downloadURL and then store it in message so that it could be displayed in the chat
@@ -143,12 +143,14 @@ const MessagesForm = props => {
                     .getDownloadURL()
                     .then(downloadUrl => {
                         sendFileMessage(downloadUrl, messagesRef, pathToUpload);
+                        setPercent(0);
                     })
                     .catch(err => {
                         console.log(err);
                         setErrors(tempErr.concat(err));
                         setUploadState('error');
                         setUploadTask(null);
+                        setPercent(0);
                     })
             }, 3000);
             return () => clearTimeout(timer);
