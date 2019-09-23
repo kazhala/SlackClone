@@ -1,6 +1,6 @@
 import React, { useState, useReducer, useEffect, useCallback } from 'react';
-import { useListVals } from 'react-firebase-hooks/database';
-import { Menu, Icon, Modal, Form, Input, Button, Popup, Loader } from 'semantic-ui-react';
+import { useListVals, useListKeys } from 'react-firebase-hooks/database';
+import { Menu, Icon, Modal, Form, Input, Button, Popup, Loader, Label } from 'semantic-ui-react';
 import firebase from '../../../firebase';
 import { connect } from 'react-redux';
 import * as actionCreators from '../../../actions/index';
@@ -31,7 +31,7 @@ const channelInputReducer = (currentState, action) => {
 
 //firebase databse listner reference
 const channelRef = firebase.database().ref('channels');
-
+const messagesRef = firebase.database().ref('messages');
 
 const Channels = props => {
     const { setChannel, setPrivateChannel } = props;
@@ -43,6 +43,10 @@ const Channels = props => {
 
     const [firstLoad, setFirstLoad] = useState(true);
 
+    const [messageChannel, setMessageChannel] = useState(null);
+
+    const [notifications, setNotifications] = useState([]);
+
     //local reducer to handle multiple state manipulation
     const [channelInput, dispatchInput] = useReducer(channelInputReducer, {
         channelname: '',
@@ -53,13 +57,68 @@ const Channels = props => {
     //firebase databse listner + data
     // eslint-disable-next-line
     const [snapshots, loading, error] = useListVals(channelRef);
+    const [snapKeys, keyLoading, keyError] = useListKeys(channelRef);
+
+    //const [messageSnap, messageLoading, messageError] = useListVals(messagesRef);
+
+    useEffect(() => {
+        const handleNotifications = (channelId, currentChannelId, notifications, snap) => {
+            let lastTotal = 0;
+            let index = notifications.findIndex(notification => notification.id === channelId);
+            if (index !== -1) {
+                if (channelId !== currentChannelId) {
+                    lastTotal = notifications[index].total;
+
+                    if (snap.numChildren() - lastTotal > 0) {
+                        notifications[index].count = snap.numChildren() - lastTotal;
+                    }
+                }
+                notifications[index].lastKnownTotal = snap.numChildren();
+            } else {
+                notifications.push({
+                    id: channelId,
+                    total: snap.numChildren(),
+                    lastKnownTotal: snap.numChildren(),
+                    count: 0
+                })
+            }
+            setNotifications(notifications);
+        };
+
+        snapKeys.forEach(snap => {
+            messagesRef.child(snap).on('value', messageSnap => {
+                if (messageChannel) {
+                    handleNotifications(snap, messageChannel.id, notifications, messageSnap);
+                }
+            })
+        })
+
+    }, [messageChannel, notifications, snapKeys]);
+
+    console.log(notifications);
+
+    const clearNotifications = useCallback(() => {
+        let index = notifications.findIndex(notification => notification.id === messageChannel.id);
+        if (index !== -1) {
+            setNotifications(prevNotification => {
+                let updatedNotification = [...prevNotification];
+                updatedNotification[index].total = prevNotification[index].lastKnownTotal;
+                updatedNotification[index].count = 0;
+                return updatedNotification;
+            })
+        }
+    }, [messageChannel, notifications])
 
     //call redux to set new seleted channel
     const changeChannel = useCallback((channel) => {
         setActiveChannel(channel.id);
+        clearNotifications();
         setChannel(channel);
         setPrivateChannel(false);
-    }, [setChannel, setPrivateChannel]);
+        if (!firstLoad) {
+            setMessageChannel(channel);
+        }
+    }, [setChannel, setPrivateChannel, firstLoad, clearNotifications]);
 
     const setFirstChannel = useCallback(() => {
         if (firstLoad && snapshots.length > 0) {
@@ -70,7 +129,6 @@ const Channels = props => {
 
 
     useEffect(() => {
-        //console.log('loaded');
         setFirstChannel();
     }, [setFirstChannel]);
 
@@ -163,10 +221,24 @@ const Channels = props => {
                     style={{ opacity: 0.7 }}
                     active={channel.id === activeChannel}
                 >
+                    {getNotificationCount(channel) && (
+                        <Label color="red">{getNotificationCount(channel)}</Label>
+                    )}
                     # {channel.name}
                 </Menu.Item>
             )) : <Loader active inverted>Loading channels</Loader>
         );
+    }
+
+    const getNotificationCount = (channel) => {
+        let count = 0;
+        notifications.forEach(notification => {
+            if (notification.id === channel.id) {
+                count = notification.count;
+            }
+        })
+
+        if (count > 0) return count;
     }
 
     //check if field is empty

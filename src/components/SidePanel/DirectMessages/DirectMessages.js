@@ -19,6 +19,8 @@ const DirectMessages = props => {
     //updated users with uptodate status
     const [statusUser, setStatusUser] = useState([]);
 
+    const [activeChannel, setActiveChannel] = useState('');
+
     //eslint-disable-next-line
     const [snapshots, loading, error] = useList(usersRef);
     //eslint-disable-next-line
@@ -96,6 +98,7 @@ const DirectMessages = props => {
         }
         props.setCurrentChannel(channelData);
         props.setPrivateChannel(true);
+        setActiveChannel(targetUser.uid);
     }
 
     const getChannelId = userId => {
@@ -115,6 +118,7 @@ const DirectMessages = props => {
             {statusUser.map(contactUser => (
                 <Menu.Item
                     key={contactUser.uid}
+                    active={activeChannel === contactUser.uid}
                     onClick={() => changeChannel(contactUser)}
                     style={{ opacity: 0.7, fontStyle: "italic" }}
                 >

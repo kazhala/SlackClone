@@ -9,9 +9,11 @@ const MessagesHeader = props => {
                     {props.channelName}
                     {!props.isPrivateChannel && <Icon name={"star outline"} color="black" />}
                 </span>
-                <Header.Subheader>
-                    {props.userCount}
-                </Header.Subheader>
+                {!props.isPrivateChannel &&
+                    <Header.Subheader>
+                        {props.userCount}
+                    </Header.Subheader>
+                }
             </Header>
             <Header floated="right">
                 <Input
