@@ -38,13 +38,13 @@ const Channels = props => {
 
     //handle modal display
     const [modal, setModal] = useState(false);
-
+    //current channel
     const [activeChannel, setActiveChannel] = useState('');
-
+    //identify component first load, set first channel as active
     const [firstLoad, setFirstLoad] = useState(true);
-
+    //for message notification reference, once message channel is set, start accepting message notifications
     const [messageChannel, setMessageChannel] = useState(null);
-
+    //store each channel notification status, if new message, array would update
     const [notifications, setNotifications] = useState([]);
 
     //local reducer to handle multiple state manipulation
@@ -53,28 +53,33 @@ const Channels = props => {
         channelDetails: ''
     });
 
-
     //firebase databse listner + data
     // eslint-disable-next-line
     const [snapshots, loading, error] = useListVals(channelRef);
+    // eslint-disable-next-line
     const [snapKeys, keyLoading, keyError] = useListKeys(channelRef);
 
-    //const [messageSnap, messageLoading, messageError] = useListVals(messagesRef);
-
+    //notification listners, if new message is upload to the DB
+    //check if it is the same channel, then display count
     useEffect(() => {
         const handleNotifications = (channelId, currentChannelId, notifications, snap) => {
             let lastTotal = 0;
+            //find the index of the channel in notification array
             let index = notifications.findIndex(notification => notification.id === channelId);
+            //if found
             if (index !== -1) {
+                // and is not the current channel
                 if (channelId !== currentChannelId) {
+                    //update total
                     lastTotal = notifications[index].total;
-
+                    //if message on DB is greater than lastTotal, there is new messsage
                     if (snap.numChildren() - lastTotal > 0) {
                         notifications[index].count = snap.numChildren() - lastTotal;
                     }
                 }
                 notifications[index].lastKnownTotal = snap.numChildren();
             } else {
+                //if not found, means array is not fully loaded yet, push the current channel into the array
                 notifications.push({
                     id: channelId,
                     total: snap.numChildren(),
@@ -85,8 +90,10 @@ const Channels = props => {
             setNotifications(notifications);
         };
 
+        //open a listner for each channel
         snapKeys.forEach(snap => {
             messagesRef.child(snap).on('value', messageSnap => {
+                //once the messageChannel is set, start accepting channel notifications
                 if (messageChannel) {
                     handleNotifications(snap, messageChannel.id, notifications, messageSnap);
                 }
@@ -95,11 +102,13 @@ const Channels = props => {
 
     }, [messageChannel, notifications, snapKeys]);
 
-    console.log(notifications);
+    //console.log(notifications);
 
     const clearNotifications = useCallback(() => {
+        //get the index of the current channel
         let index = notifications.findIndex(notification => notification.id === messageChannel.id);
         if (index !== -1) {
+            //clear the notification
             setNotifications(prevNotification => {
                 let updatedNotification = [...prevNotification];
                 updatedNotification[index].total = prevNotification[index].lastKnownTotal;
@@ -112,6 +121,7 @@ const Channels = props => {
     //call redux to set new seleted channel
     const changeChannel = useCallback((channel) => {
         setActiveChannel(channel.id);
+        //clear notification on entering a new channel
         clearNotifications();
         setChannel(channel);
         setPrivateChannel(false);
@@ -132,10 +142,12 @@ const Channels = props => {
         setFirstChannel();
     }, [setFirstChannel]);
 
+    //close the listners
     useEffect(() => {
         return () => {
             console.log('closed');
             channelRef.off();
+            messagesRef.off();
         }
     }, []);
 
@@ -232,12 +244,14 @@ const Channels = props => {
 
     const getNotificationCount = (channel) => {
         let count = 0;
+        //find the according channel details in notification
         notifications.forEach(notification => {
             if (notification.id === channel.id) {
                 count = notification.count;
             }
         })
 
+        //if there is new messages, return
         if (count > 0) return count;
     }
 

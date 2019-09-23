@@ -6,7 +6,7 @@ import FileModal from '../FileModal/FileModal';
 import ProgressBar from '../ProgressBar/ProgressBar';
 
 const MessagesForm = props => {
-    const { messagesRef, currentChannel, currentUser, getMessagesRef } = props;
+    const { currentChannel, currentUser, getMessagesRef } = props;
 
     //firebase storage reference
     const storageRef = firebase.storage().ref();
