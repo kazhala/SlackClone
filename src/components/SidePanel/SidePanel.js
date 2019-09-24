@@ -3,6 +3,7 @@ import { Menu } from 'semantic-ui-react';
 import UserPanel from './UserPanel/UserPanel';
 import Channels from './Channels/Channels';
 import DirectMessages from './DirectMessages/DirectMessages';
+import Starred from './Starred/Starred';
 
 const SidePanel = props => {
     return (
@@ -15,8 +16,10 @@ const SidePanel = props => {
             style={{ background: "#4c3c4c", fontSize: '1.2rem' }}
         >
             <UserPanel user={props.user} />
+            <Starred />
             <Channels user={props.user} />
             <DirectMessages user={props.user} />
+
         </Menu>
 
     );
