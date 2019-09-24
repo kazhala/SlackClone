@@ -7,7 +7,13 @@ const MessagesHeader = props => {
             <Header fluid="true" as="h2" floated="left" style={{ marginBottom: 0 }}>
                 <span>
                     {props.channelName}
-                    {!props.isPrivateChannel && <Icon name={"star outline"} color="black" />}
+                    {!props.isPrivateChannel && (
+                        <Icon
+                            onClick={props.handleStar}
+                            name={props.isChannelStarred ? 'star' : 'star outline'}
+                            color={props.isChannelStarred ? 'yellow' : 'black'}
+                        />
+                    )}
                 </span>
                 {!props.isPrivateChannel &&
                     <Header.Subheader>

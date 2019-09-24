@@ -4,11 +4,12 @@ import { Segment, Comment } from 'semantic-ui-react';
 import MessagesHeader from './MessagesHeader/MessagesHeader';
 import MessagesForm from './MessagesForm/MessagesForm';
 import Message from './Message/Message';
-import { useListVals } from 'react-firebase-hooks/database';
+import { useListVals, useList } from 'react-firebase-hooks/database';
 
 //firebase databse reference
 const messagesRef = firebase.database().ref('messages');
 const privateMessagesRef = firebase.database().ref('privateMessages');
+const usersRef = firebase.database().ref('users');
 const Messages = props => {
     const { currentChannel, currentUser, isPrivateChannel } = props;
 
@@ -17,11 +18,17 @@ const Messages = props => {
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResult, setSearchResult] = useState([]);
 
+
+    //const [firstLoad, setFirstLoad] = useState(true);
+
     const getMessagesRef = isPrivateChannel ? privateMessagesRef : messagesRef;
 
     //using installed firebase hooks to listen for changes
     //eslint-disable-next-line
     const [snapshots, loading, error] = useListVals(getMessagesRef.child(currentChannel.id));
+    //eslint-disable-next-line
+    const [starSnap, starLoading, starError] = useList(usersRef.child(currentUser.uid).child('starred'));
+
 
     //display the channel detail 
     const displayChannelName = channel => {
@@ -76,6 +83,74 @@ const Messages = props => {
     }, [searchLoading, snapshots, searchTerm]);
 
 
+    const isChannelStarred = () => {
+        let starredChannelIds = [];
+        starredChannelIds = starSnap.map(snap => snap.key);
+        return starredChannelIds.includes(currentChannel.id);
+    }
+
+    const handleStar = () => {
+        if (!isChannelStarred()) {
+            usersRef
+                .child(`${currentUser.uid}/starred`)
+                .update({
+                    [currentChannel.id]: {
+                        name: currentChannel.name,
+                        details: currentChannel.details,
+                        createdBy: {
+                            name: currentChannel.createdBy.name,
+                            avatar: currentChannel.createdBy.avatar
+                        }
+                    }
+                });
+        } else {
+            usersRef
+                .child(`${currentUser.uid}/starred`)
+                .child(currentChannel.id)
+                .remove(err => {
+                    if (err !== null) {
+                        console.log(err);
+                    }
+                })
+        }
+    }
+
+
+    /*
+    useEffect(() => {
+        const starChannel = () => {
+            if (isChannelStarred) {
+                usersRef
+                    .child(`${currentUser.uid}/starred`)
+                    .update({
+                        [currentChannel.id]: {
+                            name: currentChannel.name,
+                            details: currentChannel.details,
+                            createdBy: {
+                                name: currentChannel.createdBy.name,
+                                avatar: currentChannel.createdBy.avatar
+                            }
+                        }
+                    });
+            } else {
+                usersRef
+                    .child(`${currentUser.uid}/starred`)
+                    .child(currentChannel.id)
+                    .remove(err => {
+                        if (err !== null) {
+                            console.log(err);
+                        }
+                    })
+            }
+        }
+        console.log('test');
+        if (!firstLoad) {
+            starChannel();
+        }
+
+    }, [isChannelStarred, currentChannel, currentUser, firstLoad])
+    */
+
     return (
         <React.Fragment>
             <MessagesHeader
@@ -84,6 +159,8 @@ const Messages = props => {
                 handleSearch={handleSearch}
                 searchLoading={searchLoading}
                 isPrivateChannel={isPrivateChannel}
+                handleStar={handleStar}
+                isChannelStarred={isChannelStarred()}
             />
             <Segment>
 
