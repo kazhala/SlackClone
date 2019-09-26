@@ -18,9 +18,12 @@ const App = props => {
 
     return (
         <Grid columns="equal" className="app" style={{ background: '#eee' }}>
-            <ColorPanel />
+            <ColorPanel
+                key={props.currentUser && props.currentUser.name}
+                user={props.currentUser}
+            />
             <SidePanel
-                key={props.currentUser && props.currentUser.id}
+                key={props.currentUser && props.currentUser.uid}
                 user={props.currentUser}
             />
             <Grid.Column style={{ marginLeft: 320 }}>
@@ -29,7 +32,7 @@ const App = props => {
         */}
                 {props.currentUser && props.currentChannel ? (
                     <Messages
-                        key={props.currentUser && props.currentUser.id}
+                        key={props.currentChannel && props.currentChannel.name}
                         currentChannel={props.currentChannel}
                         currentUser={props.currentUser}
                         isPrivateChannel={props.isPrivateChannel}

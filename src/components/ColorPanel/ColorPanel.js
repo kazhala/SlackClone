@@ -6,12 +6,19 @@ import {
     Button,
     Modal,
     Icon,
-    Label
+    Label,
+    Segment
 } from 'semantic-ui-react';
 import { SliderPicker } from 'react-color';
+import firebase from '../../firebase';
+
+const usersRef = firebase.database().ref('users');
 
 const ColorPanel = props => {
     const [modalOpen, setModalOpen] = useState(false);
+
+    const [primary, setPrimary] = useState('');
+    const [secondary, setSecondary] = useState('');
 
     const openModal = () => {
         setModalOpen(true);
@@ -19,6 +26,35 @@ const ColorPanel = props => {
 
     const closeModal = () => {
         setModalOpen(false);
+    };
+
+    const handleChangePrimary = color => {
+        setPrimary(color.hex);
+    };
+
+    const handleChangeSecondary = color => {
+        setSecondary(color.hex);
+    };
+
+    const handleSave = () => {
+        if (primary && secondary) {
+            saveColors(primary, secondary);
+        }
+    };
+
+    const saveColors = (primaryColor, secondaryColor) => {
+        usersRef
+            .child(`${props.user.uid}/colors`)
+            .push()
+            .update({
+                primaryColor,
+                secondaryColor
+            })
+            .then(() => {
+                console.log('colors added');
+                closeModal();
+            })
+            .catch(err => console.log(err));
     };
 
     return (
@@ -35,13 +71,24 @@ const ColorPanel = props => {
             <Modal basic open={modalOpen} onClose={closeModal}>
                 <Modal.Header>Choose App Colors</Modal.Header>
                 <Modal.Content>
-                    <Label content="Primary Color" />
-                    <SliderPicker />
-                    <Label content="Secondary Color" />
-                    <SliderPicker />
+                    <Segment inverted>
+                        <Label content="Primary Color" />
+                        <SliderPicker
+                            onChange={handleChangePrimary}
+                            color={primary}
+                        />
+                    </Segment>
+
+                    <Segment inverted>
+                        <Label content="Secondary Color" />
+                        <SliderPicker
+                            onChange={handleChangeSecondary}
+                            color={secondary}
+                        />
+                    </Segment>
                 </Modal.Content>
                 <Modal.Actions>
-                    <Button color="green" inverted>
+                    <Button color="green" inverted onClick={handleSave}>
                         <Icon name="checkmark" /> Save Colors
                     </Button>
                     <Button color="red" inverted onClick={closeModal}>
