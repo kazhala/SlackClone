@@ -42,6 +42,7 @@ const App = props => {
                 <MetaPanel
                     key={props.currentChannel && props.currentChannel.id}
                     isPrivateChannel={props.isPrivateChannel}
+                    currentChannel={props.currentChannel}
                 />
             </Grid.Column>
         </Grid>

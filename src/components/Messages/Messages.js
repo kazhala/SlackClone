@@ -13,11 +13,9 @@ const usersRef = firebase.database().ref('users');
 const Messages = props => {
     const { currentChannel, currentUser, isPrivateChannel } = props;
 
-
     const [searchTerm, setSearchTerm] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResult, setSearchResult] = useState([]);
-
 
     //const [firstLoad, setFirstLoad] = useState(true);
 
@@ -25,15 +23,20 @@ const Messages = props => {
 
     //using installed firebase hooks to listen for changes
     //eslint-disable-next-line
-    const [snapshots, loading, error] = useListVals(getMessagesRef.child(currentChannel.id));
+    const [snapshots, loading, error] = useListVals(
+        getMessagesRef.child(currentChannel.id)
+    );
     //eslint-disable-next-line
-    const [starSnap, starLoading, starError] = useList(usersRef.child(currentUser.uid).child('starred'));
+    const [starSnap, starLoading, starError] = useList(
+        usersRef.child(currentUser.uid).child('starred')
+    );
 
-
-    //display the channel detail 
+    //display the channel detail
     const displayChannelName = channel => {
-        return channel ? `${props.isPrivateChannel ? '@' : '#'}${channel.name}` : '';
-    }
+        return channel
+            ? `${props.isPrivateChannel ? '@' : '#'}${channel.name}`
+            : '';
+    };
 
     //count the number of users in the channel
     const countUniqUsers = () => {
@@ -46,20 +49,39 @@ const Messages = props => {
         }, []);
         const display = `${count.length} user${count.length > 1 ? 's' : ''}`;
         return display;
-    }
+    };
+
+    const countUserPosts = () => {
+        const userPosts = snapshots.reduce((acc, message) => {
+            if (message.user.name in acc) {
+                acc[message.user.name].count += 1;
+            } else {
+                acc[message.user.name] = {
+                    avatar: message.user.avatar,
+                    count: 1
+                };
+            }
+            return acc;
+        }, {});
+        console.log(userPosts);
+    };
+
+    useEffect(() => {
+        countUserPosts();
+    });
 
     //componentWillUnmount, cut of the listner when destructed
     useEffect(() => {
         return () => {
             console.log('closed');
             messagesRef.off();
-        }
+        };
     }, []);
 
     const handleSearch = e => {
         setSearchTerm(e.target.value);
         setSearchLoading(true);
-    }
+    };
 
     //handle the user search input, set a timeout so that it won't re-render immediatly
     //and also show a spinner
@@ -69,40 +91,39 @@ const Messages = props => {
                 const channelMessages = [...snapshots];
                 const regex = new RegExp(searchTerm, 'gi');
                 const searchResults = channelMessages.reduce((acc, message) => {
-                    if ((message.content && message.content.match(regex)) || message.user.name.match(regex)) {
+                    if (
+                        (message.content && message.content.match(regex)) ||
+                        message.user.name.match(regex)
+                    ) {
                         acc.push(message);
                     }
                     return acc;
-                }, [])
+                }, []);
                 setSearchResult(searchResults);
                 setSearchLoading(false);
-
             }, 1000);
             return () => clearTimeout(timer);
         }
     }, [searchLoading, snapshots, searchTerm]);
 
-
     const isChannelStarred = () => {
         let starredChannelIds = [];
         starredChannelIds = starSnap.map(snap => snap.key);
         return starredChannelIds.includes(currentChannel.id);
-    }
+    };
 
     const handleStar = () => {
         if (!isChannelStarred()) {
-            usersRef
-                .child(`${currentUser.uid}/starred`)
-                .update({
-                    [currentChannel.id]: {
-                        name: currentChannel.name,
-                        details: currentChannel.details,
-                        createdBy: {
-                            name: currentChannel.createdBy.name,
-                            avatar: currentChannel.createdBy.avatar
-                        }
+            usersRef.child(`${currentUser.uid}/starred`).update({
+                [currentChannel.id]: {
+                    name: currentChannel.name,
+                    details: currentChannel.details,
+                    createdBy: {
+                        name: currentChannel.createdBy.name,
+                        avatar: currentChannel.createdBy.avatar
                     }
-                });
+                }
+            });
         } else {
             usersRef
                 .child(`${currentUser.uid}/starred`)
@@ -111,10 +132,9 @@ const Messages = props => {
                     if (err !== null) {
                         console.log(err);
                     }
-                })
+                });
         }
-    }
-
+    };
 
     /*
     useEffect(() => {
@@ -163,33 +183,35 @@ const Messages = props => {
                 isChannelStarred={isChannelStarred()}
             />
             <Segment>
-
                 <Comment.Group className="messages">
-                    {searchTerm ? searchResult.length > 0 && searchResult.map(message => (
-                        <Message
-                            key={message.timestamp}
-                            message={message}
-                            user={currentUser}
-                        />
-                    )) : snapshots.length > 0 && snapshots.map(message => (
-                        <Message
-                            key={message.timestamp}
-                            message={message}
-                            user={currentUser}
-                        />
-                    ))}
+                    {searchTerm
+                        ? searchResult.length > 0 &&
+                          searchResult.map(message => (
+                              <Message
+                                  key={message.timestamp}
+                                  message={message}
+                                  user={currentUser}
+                              />
+                          ))
+                        : snapshots.length > 0 &&
+                          snapshots.map(message => (
+                              <Message
+                                  key={message.timestamp}
+                                  message={message}
+                                  user={currentUser}
+                              />
+                          ))}
                 </Comment.Group>
-
-
             </Segment>
             <MessagesForm
                 messagesRef={messagesRef}
                 currentUser={currentUser}
                 isPrivateChannel={isPrivateChannel}
                 getMessagesRef={getMessagesRef}
-                currentChannel={currentChannel} />
+                currentChannel={currentChannel}
+            />
         </React.Fragment>
     );
-}
+};
 
 export default Messages;
