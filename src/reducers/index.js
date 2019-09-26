@@ -1,11 +1,11 @@
 import { combineReducers } from 'redux';
 import * as acitonTypes from '../actions/types';
 
-//redux initial state 
+//redux initial state
 const initialState = {
     currentUser: null,
     isLoading: true
-}
+};
 
 //user reducer
 const user_reducer = (state = initialState, action) => {
@@ -14,21 +14,22 @@ const user_reducer = (state = initialState, action) => {
             return {
                 currentUser: action.payload.currentUser,
                 isLoading: false
-            }
+            };
         case acitonTypes.CLEAR_USER:
             return {
                 ...state,
                 isLoading: false
-            }
+            };
         default:
             return state;
     }
-}
+};
 
 const initialChannelState = {
     currentChannel: null,
     isPrivateChannel: false,
-}
+    userPosts: null
+};
 
 //channel reducer
 const channel_reducer = (state = initialChannelState, action) => {
@@ -37,16 +38,21 @@ const channel_reducer = (state = initialChannelState, action) => {
             return {
                 ...state,
                 currentChannel: action.payload.currentChannel
-            }
+            };
         case acitonTypes.SET_PRIVATE_CHANNEL:
             return {
                 ...state,
                 isPrivateChannel: action.payload.isPrivateChannel
-            }
+            };
+        case acitonTypes.SET_USER_POSTS:
+            return {
+                ...state,
+                userPosts: action.payload.userPosts
+            };
         default:
             return state;
     }
-}
+};
 
 const rootReducer = combineReducers({
     user: user_reducer,

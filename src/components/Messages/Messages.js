@@ -5,13 +5,20 @@ import MessagesHeader from './MessagesHeader/MessagesHeader';
 import MessagesForm from './MessagesForm/MessagesForm';
 import Message from './Message/Message';
 import { useListVals, useList } from 'react-firebase-hooks/database';
+import { connect } from 'react-redux';
+import * as actionCreators from '../../actions/index';
 
 //firebase databse reference
 const messagesRef = firebase.database().ref('messages');
 const privateMessagesRef = firebase.database().ref('privateMessages');
 const usersRef = firebase.database().ref('users');
 const Messages = props => {
-    const { currentChannel, currentUser, isPrivateChannel } = props;
+    const {
+        currentChannel,
+        currentUser,
+        isPrivateChannel,
+        setUserPosts
+    } = props;
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
@@ -51,24 +58,25 @@ const Messages = props => {
         return display;
     };
 
-    const countUserPosts = () => {
-        const userPosts = snapshots.reduce((acc, message) => {
-            if (message.user.name in acc) {
-                acc[message.user.name].count += 1;
-            } else {
-                acc[message.user.name] = {
-                    avatar: message.user.avatar,
-                    count: 1
-                };
-            }
-            return acc;
-        }, {});
-        console.log(userPosts);
-    };
-
     useEffect(() => {
-        countUserPosts();
-    });
+        const countUserPosts = () => {
+            const userPosts = snapshots.reduce((acc, message) => {
+                if (message.user.name in acc) {
+                    acc[message.user.name].count += 1;
+                } else {
+                    acc[message.user.name] = {
+                        avatar: message.user.avatar,
+                        count: 1
+                    };
+                }
+                return acc;
+            }, {});
+            setUserPosts(userPosts);
+        };
+        if (!loading) {
+            countUserPosts();
+        }
+    }, [loading, snapshots, setUserPosts]);
 
     //componentWillUnmount, cut of the listner when destructed
     useEffect(() => {
@@ -214,4 +222,14 @@ const Messages = props => {
     );
 };
 
-export default Messages;
+const mapDispatchToProps = dispatch => {
+    return {
+        setUserPosts: userPosts =>
+            dispatch(actionCreators.setUserPosts(userPosts))
+    };
+};
+
+export default connect(
+    null,
+    mapDispatchToProps
+)(Messages);

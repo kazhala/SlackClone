@@ -43,6 +43,7 @@ const App = props => {
                     key={props.currentChannel && props.currentChannel.id}
                     isPrivateChannel={props.isPrivateChannel}
                     currentChannel={props.currentChannel}
+                    userPosts={props.userPosts}
                 />
             </Grid.Column>
         </Grid>
@@ -53,7 +54,8 @@ const mapStateToProps = state => {
     return {
         currentUser: state.user.currentUser,
         currentChannel: state.channel.currentChannel,
-        isPrivateChannel: state.channel.isPrivateChannel
+        isPrivateChannel: state.channel.isPrivateChannel,
+        userPosts: state.channel.userPosts
     };
 };
 
