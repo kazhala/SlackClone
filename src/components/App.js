@@ -8,7 +8,7 @@ import MetaPanel from './MetaPanel/MetaPanel';
 import { connect } from 'react-redux';
 
 const App = props => {
-    const { currentUser } = props;
+    const { currentUser, primaryColor, secondaryColor } = props;
     //When user first time visit, the new displayName and photoURL have not yet been registered in firebase
     //But listner at index.js would detect change of auth state and push the app page with null value of displayName, and photoURL
     //Below would refresh and get the updated user info when user first time register
@@ -17,12 +17,19 @@ const App = props => {
     }, [currentUser]);
 
     return (
-        <Grid columns="equal" className="app" style={{ background: '#eee' }}>
+        <Grid
+            columns="equal"
+            className="app"
+            style={{
+                background: secondaryColor
+            }}
+        >
             <ColorPanel
                 key={props.currentUser && props.currentUser.name}
                 user={props.currentUser}
             />
             <SidePanel
+                primaryColor={primaryColor}
                 key={props.currentUser && props.currentUser.uid}
                 user={props.currentUser}
             />
@@ -58,7 +65,9 @@ const mapStateToProps = state => {
         currentUser: state.user.currentUser,
         currentChannel: state.channel.currentChannel,
         isPrivateChannel: state.channel.isPrivateChannel,
-        userPosts: state.channel.userPosts
+        userPosts: state.channel.userPosts,
+        primaryColor: state.colors.primaryColor,
+        secondaryColor: state.colors.secondaryColor
     };
 };
 

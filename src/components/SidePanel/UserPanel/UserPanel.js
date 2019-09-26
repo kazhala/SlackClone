@@ -3,13 +3,17 @@ import firebase from '../../../firebase';
 import { Grid, Header, Icon, Dropdown, Image } from 'semantic-ui-react';
 
 const UserPanel = props => {
-    const { user } = props;
+    const { user, primaryColor } = props;
 
     //selectable in the dropdown menu
     const dropdownOptions = () => [
         {
             key: 'user',
-            text: <span>Signed in as <strong>{user.displayName}</strong></span>,
+            text: (
+                <span>
+                    Signed in as <strong>{user.displayName}</strong>
+                </span>
+            ),
             disabled: true
         },
         {
@@ -29,13 +33,12 @@ const UserPanel = props => {
             .signOut()
             .then(() => {
                 console.log('signed out');
-            })
-    }
-
+            });
+    };
 
     return (
         <Grid>
-            <Grid.Column style={{ background: '#4c3c4c' }}>
+            <Grid.Column style={{ background: primaryColor }}>
                 <Grid.Row style={{ padding: '1.2em', margin: 0 }}>
                     <Header inverted floated="left" as="h2">
                         <Icon name="code" />
@@ -45,7 +48,11 @@ const UserPanel = props => {
                         <Dropdown
                             trigger={
                                 <span>
-                                    <Image src={user.photoURL} spaced="right" avatar />
+                                    <Image
+                                        src={user.photoURL}
+                                        spaced="right"
+                                        avatar
+                                    />
                                     {user.displayName}
                                 </span>
                             }
@@ -53,12 +60,9 @@ const UserPanel = props => {
                         />
                     </Header>
                 </Grid.Row>
-
             </Grid.Column>
         </Grid>
     );
-}
-
-
+};
 
 export default UserPanel;

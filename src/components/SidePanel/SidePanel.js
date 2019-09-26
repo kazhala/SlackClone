@@ -6,6 +6,7 @@ import DirectMessages from './DirectMessages/DirectMessages';
 import Starred from './Starred/Starred';
 
 const SidePanel = props => {
+    const { user, primaryColor } = props;
     return (
         <Menu
             size="large"
@@ -13,16 +14,16 @@ const SidePanel = props => {
             fixed="left"
             vertical
             style={{
-                background: '#4c3c4c',
+                background: primaryColor,
                 fontSize: '1.2rem',
                 overflowY: 'auto'
             }}
             className="sideScroll"
         >
-            <UserPanel user={props.user} />
-            <Starred user={props.user} />
-            <Channels user={props.user} />
-            <DirectMessages user={props.user} />
+            <UserPanel primaryColor={primaryColor} user={user} />
+            <Starred user={user} />
+            <Channels user={user} />
+            <DirectMessages user={user} />
         </Menu>
     );
 };
