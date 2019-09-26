@@ -1,6 +1,16 @@
 import React, { useState, useReducer, useEffect, useCallback } from 'react';
 import { useListVals, useListKeys } from 'react-firebase-hooks/database';
-import { Menu, Icon, Modal, Form, Input, Button, Popup, Loader, Label } from 'semantic-ui-react';
+import {
+    Menu,
+    Icon,
+    Modal,
+    Form,
+    Input,
+    Button,
+    Popup,
+    Loader,
+    Label
+} from 'semantic-ui-react';
 import firebase from '../../../firebase';
 import { connect } from 'react-redux';
 import * as actionCreators from '../../../actions/index';
@@ -12,30 +22,28 @@ const channelInputReducer = (currentState, action) => {
             return {
                 ...currentState,
                 channelname: action.channelname
-            }
+            };
         case 'CHANNELDETAILS':
             return {
                 ...currentState,
                 channelDetails: action.channelDetails
-            }
+            };
         case 'CLEARDETAILS':
             return {
                 channelname: '',
                 channelDetails: ''
-            }
+            };
         default:
             return currentState;
     }
-}
-
+};
 
 //firebase databse listner reference
-const channelRef = firebase.database().ref('channels');
 const messagesRef = firebase.database().ref('messages');
+const channelRef = firebase.database().ref('channels');
 
 const Channels = props => {
-    const { setChannel, setPrivateChannel } = props;
-
+    const { setChannel, setPrivateChannel, currentSelectedChannel } = props;
     //handle modal display
     const [modal, setModal] = useState(false);
     //current channel
@@ -62,10 +70,17 @@ const Channels = props => {
     //notification listners, if new message is upload to the DB
     //check if it is the same channel, then display count
     useEffect(() => {
-        const handleNotifications = (channelId, currentChannelId, notifications, snap) => {
+        const handleNotifications = (
+            channelId,
+            currentChannelId,
+            notifications,
+            snap
+        ) => {
             let lastTotal = 0;
             //find the index of the channel in notification array
-            let index = notifications.findIndex(notification => notification.id === channelId);
+            let index = notifications.findIndex(
+                notification => notification.id === channelId
+            );
             //if found
             if (index !== -1) {
                 // and is not the current channel
@@ -74,7 +89,8 @@ const Channels = props => {
                     lastTotal = notifications[index].total;
                     //if message on DB is greater than lastTotal, there is new messsage
                     if (snap.numChildren() - lastTotal > 0) {
-                        notifications[index].count = snap.numChildren() - lastTotal;
+                        notifications[index].count =
+                            snap.numChildren() - lastTotal;
                     }
                 }
                 notifications[index].lastKnownTotal = snap.numChildren();
@@ -85,50 +101,62 @@ const Channels = props => {
                     total: snap.numChildren(),
                     lastKnownTotal: snap.numChildren(),
                     count: 0
-                })
+                });
             }
             setNotifications(notifications);
         };
 
         //open a listner for each channel
-        snapKeys.forEach(snap => {
-            messagesRef.child(snap).on('value', messageSnap => {
-                //once the messageChannel is set, start accepting channel notifications
-                if (messageChannel) {
-                    handleNotifications(snap, messageChannel.id, notifications, messageSnap);
-                }
-            })
-        })
-
-    }, [messageChannel, notifications, snapKeys]);
+        if (snapKeys && !keyLoading) {
+            snapKeys.forEach(snap => {
+                messagesRef.child(snap).on('value', messageSnap => {
+                    //once the messageChannel is set, start accepting channel notifications
+                    if (messageChannel) {
+                        handleNotifications(
+                            snap,
+                            messageChannel.id,
+                            notifications,
+                            messageSnap
+                        );
+                    }
+                });
+            });
+        }
+    }, [messageChannel, notifications, snapKeys, keyLoading]);
 
     //console.log(notifications);
 
     const clearNotifications = useCallback(() => {
         //get the index of the current channel
-        let index = notifications.findIndex(notification => notification.id === messageChannel.id);
+        let index = notifications.findIndex(
+            notification => notification.id === messageChannel.id
+        );
         if (index !== -1) {
             //clear the notification
             setNotifications(prevNotification => {
                 let updatedNotification = [...prevNotification];
-                updatedNotification[index].total = prevNotification[index].lastKnownTotal;
+                updatedNotification[index].total =
+                    prevNotification[index].lastKnownTotal;
                 updatedNotification[index].count = 0;
                 return updatedNotification;
-            })
+            });
         }
-    }, [messageChannel, notifications])
+    }, [messageChannel, notifications]);
 
     //call redux to set new seleted channel
-    const changeChannel = useCallback((channel) => {
-        setActiveChannel(channel.id);
-        //clear notification on entering a new channel
-        clearNotifications();
-        setChannel(channel);
-        setPrivateChannel(false);
-        if (!firstLoad) {
-            setMessageChannel(channel);
-        }
-    }, [setChannel, setPrivateChannel, firstLoad, clearNotifications]);
+    const changeChannel = useCallback(
+        channel => {
+            setActiveChannel(channel.id);
+            //clear notification on entering a new channel
+            clearNotifications();
+            setChannel(channel);
+            setPrivateChannel(false);
+            if (!firstLoad) {
+                setMessageChannel(channel);
+            }
+        },
+        [setChannel, setPrivateChannel, firstLoad, clearNotifications]
+    );
 
     const setFirstChannel = useCallback(() => {
         if (firstLoad && snapshots.length > 0) {
@@ -136,7 +164,6 @@ const Channels = props => {
             setFirstLoad(false);
         }
     }, [snapshots, firstLoad, changeChannel]);
-
 
     useEffect(() => {
         setFirstChannel();
@@ -148,10 +175,8 @@ const Channels = props => {
             console.log('closed');
             channelRef.off();
             messagesRef.off();
-        }
+        };
     }, []);
-
-
 
     //handle input filed change when adding new channel
     const handleChange = e => {
@@ -171,17 +196,17 @@ const Channels = props => {
             default:
                 break;
         }
-    }
+    };
 
     //close modal action
     const closeModal = () => {
         setModal(false);
-    }
+    };
 
     //open modal aciton
     const openModal = () => {
         setModal(true);
-    }
+    };
 
     //handles the aciton of adding a new channel
     const addChannel = () => {
@@ -211,8 +236,8 @@ const Channels = props => {
             })
             .catch(error => {
                 console.log(error);
-            })
-    }
+            });
+    };
 
     //handle adding new channel
     const handleSubmit = e => {
@@ -220,12 +245,12 @@ const Channels = props => {
         if (isFormValid()) {
             addChannel();
         }
-    }
+    };
 
     //loop to display all channels retrieved from databse
     const displayChannels = () => {
-        return (
-            snapshots.length > 0 ? snapshots.map(channel => (
+        return snapshots.length > 0 ? (
+            snapshots.map(channel => (
                 <Menu.Item
                     key={channel.id}
                     onClick={() => changeChannel(channel)}
@@ -234,45 +259,55 @@ const Channels = props => {
                     active={channel.id === activeChannel}
                 >
                     {getNotificationCount(channel) && (
-                        <Label color="red">{getNotificationCount(channel)}</Label>
+                        <Label color="red">
+                            {getNotificationCount(channel)}
+                        </Label>
                     )}
                     # {channel.name}
                 </Menu.Item>
-            )) : <Loader active inverted>Loading channels</Loader>
+            ))
+        ) : (
+            <Loader active inverted>
+                Loading channels
+            </Loader>
         );
-    }
+    };
 
-    const getNotificationCount = (channel) => {
+    const getNotificationCount = channel => {
         let count = 0;
         //find the according channel details in notification
-        notifications.forEach(notification => {
-            if (notification.id === channel.id) {
-                count = notification.count;
-            }
-        })
+        if (
+            currentSelectedChannel &&
+            channel.id !== currentSelectedChannel.id
+        ) {
+            notifications.forEach(notification => {
+                if (notification.id === channel.id) {
+                    count = notification.count;
+                }
+            });
+        }
 
         //if there is new messages, return
         if (count > 0) return count;
-    }
+    };
 
     //check if field is empty
     const isFormValid = () => {
         return channelInput.channelDetails && channelInput.channelname;
-    }
+    };
 
     return (
         <React.Fragment>
-
             <Menu.Menu className="menu">
-                <Menu.Item >
+                <Menu.Item>
                     <span>
                         <Icon name="exchange" /> CHANNELS
                     </span>{' '}
                     ({snapshots.length})
-                    <Popup content="Add a new channel"
-                        trigger={
-                            <Icon name="add" onClick={openModal} />
-                        } />
+                    <Popup
+                        content="Add a new channel"
+                        trigger={<Icon name="add" onClick={openModal} />}
+                    />
                 </Menu.Item>
                 {displayChannels()}
             </Menu.Menu>
@@ -311,16 +346,26 @@ const Channels = props => {
                     </Button>
                 </Modal.Actions>
             </Modal>
-
         </React.Fragment>
     );
-}
+};
+
+const mapStateToProps = state => {
+    return {
+        currentSelectedChannel: state.channel.currentChannel
+    };
+};
 
 const mapDispatchToProps = dispatch => {
     return {
-        setChannel: (channel) => dispatch(actionCreators.setCurrentChannel(channel)),
-        setPrivateChannel: (isPrivateChannel) => dispatch(actionCreators.setPrivateChannel(isPrivateChannel)),
-    }
-}
+        setChannel: channel =>
+            dispatch(actionCreators.setCurrentChannel(channel)),
+        setPrivateChannel: isPrivateChannel =>
+            dispatch(actionCreators.setPrivateChannel(isPrivateChannel))
+    };
+};
 
-export default connect(null, mapDispatchToProps)(Channels);
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(Channels);

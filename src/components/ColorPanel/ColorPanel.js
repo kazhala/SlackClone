@@ -77,7 +77,7 @@ const ColorPanel = props => {
     };
 
     const displayUserColors = colors => {
-        console.log(colors);
+        //console.log(colors);
         return (
             colors.length > 0 &&
             colors.map((color, index) => (

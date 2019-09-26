@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import firebase from '../../../firebase';
 import {
     Grid,
@@ -12,8 +12,16 @@ import {
 } from 'semantic-ui-react';
 import AvatarEditor from 'react-avatar-editor';
 
+const storageRef = firebase.storage().ref();
+
+const metadata = {
+    contentType: 'image/jpeg'
+};
+const usersRef = firebase.database().ref('users');
+
 const UserPanel = props => {
     const { user, primaryColor } = props;
+    const userRef = firebase.auth().currentUser;
 
     const cropEl = useRef(null);
 
@@ -21,6 +29,8 @@ const UserPanel = props => {
     const [modalOpen, setModalOpen] = useState(false);
 
     const [croppedImage, setCroppedImage] = useState('');
+    const [blob, setBlob] = useState('');
+    const [uploadedCroppedImage, setUploadedCroppedImage] = useState('');
 
     const openModal = () => {
         setModalOpen(true);
@@ -58,6 +68,7 @@ const UserPanel = props => {
             cropEl.current.getImageScaledToCanvas().toBlob(blob => {
                 let imageUrl = URL.createObjectURL(blob);
                 setCroppedImage(imageUrl);
+                setBlob(blob);
             });
         }
     };
@@ -72,6 +83,45 @@ const UserPanel = props => {
             });
         }
     };
+
+    const uploadCroppedImage = () => {
+        storageRef
+            .child(`avatars/user-${usersRef.uid}`)
+            .put(blob, metadata)
+            .then(snap => {
+                snap.ref.getDownloadURL().then(downloadURL => {
+                    setUploadedCroppedImage(downloadURL);
+                });
+            });
+    };
+
+    useEffect(() => {
+        const changeAvatar = () => {
+            userRef
+                .updateProfile({
+                    photoURL: uploadedCroppedImage
+                })
+                .then(() => {
+                    console.log('PhotoURL updated');
+                    closeModal();
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+            usersRef
+                .child(userRef.uid)
+                .update({
+                    avatar: uploadedCroppedImage
+                })
+                .then(() => {
+                    console.log('User Avatar updated');
+                })
+                .catch(err => console.log(err));
+        };
+        if (uploadedCroppedImage) {
+            changeAvatar();
+        }
+    }, [uploadedCroppedImage, userRef]);
 
     //handle action when user signout
     const handleSignout = () => {
@@ -152,7 +202,11 @@ const UserPanel = props => {
 
                     <Modal.Actions>
                         {croppedImage && (
-                            <Button color="green" inverted>
+                            <Button
+                                color="green"
+                                inverted
+                                onClick={uploadCroppedImage}
+                            >
                                 <Icon name="save" /> Change Avatar
                             </Button>
                         )}
