@@ -9,3 +9,5 @@ export const SET_PRIVATE_CHANNEL = 'SET_PRIVATE_CHANNEL';
 
 //messages action types
 export const SET_USER_POSTS = 'SET_USER_POSTS';
+
+export const SET_COLORS = 'SET_COLORS';
