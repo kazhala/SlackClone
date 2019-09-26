@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { connect } from 'react-redux';
+import * as actionCreators from '../../actions/index';
 import {
     Sidebar,
     Menu,
@@ -84,7 +86,7 @@ const ColorPanel = props => {
                     <div
                         className="color__container"
                         onClick={() =>
-                            props.setColors(
+                            props.setGlobalColors(
                                 color.primaryColor,
                                 color.secondaryColor
                             )
@@ -151,4 +153,14 @@ const ColorPanel = props => {
     );
 };
 
-export default ColorPanel;
+const mapDispatchToProps = dispatch => {
+    return {
+        setGlobalColors: (primary, secondary) =>
+            dispatch(actionCreators.setColors(primary, secondary))
+    };
+};
+
+export default connect(
+    null,
+    mapDispatchToProps
+)(ColorPanel);
