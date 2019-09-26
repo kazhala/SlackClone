@@ -1,9 +1,36 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import firebase from '../../../firebase';
-import { Grid, Header, Icon, Dropdown, Image } from 'semantic-ui-react';
+import {
+    Grid,
+    Header,
+    Icon,
+    Dropdown,
+    Image,
+    Modal,
+    Input,
+    Button
+} from 'semantic-ui-react';
+import AvatarEditor from 'react-avatar-editor';
 
 const UserPanel = props => {
     const { user, primaryColor } = props;
+
+    const cropEl = useRef(null);
+
+    const [previewImage, setPreviewImage] = useState('');
+    const [modalOpen, setModalOpen] = useState(false);
+
+    const [croppedImage, setCroppedImage] = useState('');
+
+    const openModal = () => {
+        setModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setModalOpen(false);
+        setCroppedImage('');
+        setPreviewImage('');
+    };
 
     //selectable in the dropdown menu
     const dropdownOptions = () => [
@@ -18,13 +45,33 @@ const UserPanel = props => {
         },
         {
             key: 'avatar',
-            text: <span>Change Avatar</span>
+            text: <div onClick={openModal}>Change Avatar</div>
         },
         {
             key: 'signout',
             text: <div onClick={handleSignout}>Sign out</div>
         }
     ];
+
+    const handleCropImage = () => {
+        if (cropEl.current) {
+            cropEl.current.getImageScaledToCanvas().toBlob(blob => {
+                let imageUrl = URL.createObjectURL(blob);
+                setCroppedImage(imageUrl);
+            });
+        }
+    };
+
+    const handleUploadChange = e => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        if (file) {
+            reader.readAsDataURL(file);
+            reader.addEventListener('load', () => {
+                setPreviewImage(reader.result);
+            });
+        }
+    };
 
     //handle action when user signout
     const handleSignout = () => {
@@ -44,6 +91,7 @@ const UserPanel = props => {
                         <Icon name="code" />
                         <Header.Content>DevChat</Header.Content>
                     </Header>
+
                     <Header style={{ padding: '0.25em' }} as="h4" inverted>
                         <Dropdown
                             trigger={
@@ -60,6 +108,66 @@ const UserPanel = props => {
                         />
                     </Header>
                 </Grid.Row>
+
+                <Modal basic open={modalOpen} onClose={closeModal}>
+                    <Modal.Header>Change Avatar</Modal.Header>
+                    <Modal.Content>
+                        <Input
+                            fluid
+                            type="file"
+                            label="New Avatar"
+                            name="previewImage"
+                            onChange={handleUploadChange}
+                        />
+
+                        <Grid centered stackable columns={2}>
+                            <Grid.Row centered>
+                                <Grid.Column className="ui center aligned grid">
+                                    {previewImage && (
+                                        <AvatarEditor
+                                            ref={cropEl}
+                                            image={previewImage}
+                                            width={120}
+                                            height={120}
+                                            border={50}
+                                            scale={1.2}
+                                        />
+                                    )}
+                                </Grid.Column>
+                                <Grid.Column>
+                                    {croppedImage && (
+                                        <Image
+                                            style={{
+                                                margin: '3.5em auto'
+                                            }}
+                                            width={100}
+                                            height={100}
+                                            src={croppedImage}
+                                        />
+                                    )}
+                                </Grid.Column>
+                            </Grid.Row>
+                        </Grid>
+                    </Modal.Content>
+
+                    <Modal.Actions>
+                        {croppedImage && (
+                            <Button color="green" inverted>
+                                <Icon name="save" /> Change Avatar
+                            </Button>
+                        )}
+                        <Button
+                            color="green"
+                            inverted
+                            onClick={handleCropImage}
+                        >
+                            <Icon name="image" /> Preview
+                        </Button>
+                        <Button color="red" inverted onClick={closeModal}>
+                            <Icon name="remove" /> Cancel
+                        </Button>
+                    </Modal.Actions>
+                </Modal>
             </Grid.Column>
         </Grid>
     );
