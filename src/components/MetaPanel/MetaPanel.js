@@ -21,7 +21,7 @@ const MetaPanel = props => {
 
     const displayTopPosters = () => {
         return Object.entries(userPosts)
-            .sort((a, b) => b[1] - a[1])
+            .sort((a, b) => b[1].count - a[1].count)
             .map((user, index) => {
                 return (
                     <List.Item key={index}>
