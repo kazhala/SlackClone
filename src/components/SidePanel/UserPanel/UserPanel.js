@@ -86,7 +86,7 @@ const UserPanel = props => {
 
     const uploadCroppedImage = () => {
         storageRef
-            .child(`avatars/user-${usersRef.uid}`)
+            .child(`avatars/user-${userRef.uid}`)
             .put(blob, metadata)
             .then(snap => {
                 snap.ref.getDownloadURL().then(downloadURL => {
@@ -114,6 +114,7 @@ const UserPanel = props => {
                     avatar: uploadedCroppedImage
                 })
                 .then(() => {
+                    setUploadedCroppedImage('');
                     console.log('User Avatar updated');
                 })
                 .catch(err => console.log(err));
@@ -129,6 +130,7 @@ const UserPanel = props => {
             .auth()
             .signOut()
             .then(() => {
+                window.location.reload();
                 console.log('signed out');
             });
     };

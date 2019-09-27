@@ -15,6 +15,9 @@ import firebase from '../../../firebase';
 import { connect } from 'react-redux';
 import * as actionCreators from '../../../actions/index';
 
+// TODO: Handle clear notification onClick on star channel
+// !Probably listen to the redux state
+
 //handle channel details
 const channelInputReducer = (currentState, action) => {
     switch (action.type) {
