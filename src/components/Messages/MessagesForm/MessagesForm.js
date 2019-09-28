@@ -5,6 +5,7 @@ import { Segment, Button, Input } from 'semantic-ui-react';
 import FileModal from '../FileModal/FileModal';
 import ProgressBar from '../ProgressBar/ProgressBar';
 
+const typingRef = firebase.database().ref('typing');
 const MessagesForm = props => {
     const { currentChannel, currentUser, getMessagesRef } = props;
 
@@ -31,34 +32,51 @@ const MessagesForm = props => {
     //handle input change
     const handleInputChange = e => {
         setUserInput(e.target.value);
-    }
+    };
+
+    const handleKeyDown = () => {
+        if (userInput) {
+            typingRef
+                .child(currentChannel.id)
+                .child(currentUser.uid)
+                .set(currentUser.displayName);
+        } else {
+            typingRef
+                .child(currentChannel.id)
+                .child(currentUser.uid)
+                .remove();
+        }
+    };
 
     const openModal = () => {
         setModal(true);
-    }
+    };
 
     const closeModal = () => {
         setModal(false);
-    }
+    };
 
     //create a message object to be stored in the database
-    const createMessage = useCallback((fileUrl = null) => {
-        const message = {
-            timestamp: firebase.database.ServerValue.TIMESTAMP,
-            user: {
-                id: currentUser.uid,
-                name: currentUser.displayName,
-                avatar: currentUser.photoURL
-            },
-        };
-        //if there is a file url, store image instead of content
-        if (fileUrl !== null) {
-            message["image"] = fileUrl;
-        } else {
-            message["content"] = userInput;
-        }
-        return message;
-    }, [currentUser, userInput])
+    const createMessage = useCallback(
+        (fileUrl = null) => {
+            const message = {
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                user: {
+                    id: currentUser.uid,
+                    name: currentUser.displayName,
+                    avatar: currentUser.photoURL
+                }
+            };
+            //if there is a file url, store image instead of content
+            if (fileUrl !== null) {
+                message['image'] = fileUrl;
+            } else {
+                message['content'] = userInput;
+            }
+            return message;
+        },
+        [currentUser, userInput]
+    );
 
     //send the message to the databse
     const sendMessage = () => {
@@ -74,16 +92,20 @@ const MessagesForm = props => {
                 .then(() => {
                     setLoading(false);
                     setUserInput('');
+                    typingRef
+                        .child(currentChannel.id)
+                        .child(currentUser.uid)
+                        .remove();
                 })
                 .catch(error => {
                     setLoading(false);
                     setErrors(errors.concat(error));
                     console.log(error);
-                })
+                });
         } else {
             setErrors(errors.concat({ message: 'Add a message' }));
         }
-    }
+    };
 
     //file path reference for image upload
     const pathToUpload = currentChannel.id;
@@ -94,7 +116,7 @@ const MessagesForm = props => {
         } else {
             return `chat/public`;
         }
-    }
+    };
 
     //set up image upload
     const uploadFile = (file, metadata) => {
@@ -103,33 +125,38 @@ const MessagesForm = props => {
         setUploadState('uploading');
         //store the image
         setUploadTask(storageRef.child(filePath).put(file, metadata));
-    }
+    };
 
     //call back for image storing
     useEffect(() => {
         if (uploadTask) {
             //listen to the uploading state, 0% - 100%
-            uploadTask.on('state_changed', snap => {
-                const percenUploaded = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
-                console.log(percenUploaded);
-                setPercent(percenUploaded);
-            }, err => {
-                console.log(err);
-                setErrors(prevState => {
-                    return prevState.concat(err);
-                });
-                setUploadState('error');
-                setUploadTask(null);
-            })
+            uploadTask.on(
+                'state_changed',
+                snap => {
+                    const percenUploaded = Math.round(
+                        (snap.bytesTransferred / snap.totalBytes) * 100
+                    );
+                    console.log(percenUploaded);
+                    setPercent(percenUploaded);
+                },
+                err => {
+                    console.log(err);
+                    setErrors(prevState => {
+                        return prevState.concat(err);
+                    });
+                    setUploadState('error');
+                    setUploadTask(null);
+                }
+            );
         }
-    }, [uploadTask])
+    }, [uploadTask]);
 
     //call back for finish uploading the image to the firebase storage
     useEffect(() => {
         //send set and store the image in the database
         const sendFileMessage = (fileUrl, ref, pathToUpload) => {
-            ref
-                .child(pathToUpload)
+            ref.child(pathToUpload)
                 .push()
                 .set(createMessage(fileUrl))
                 .then(() => {
@@ -139,7 +166,7 @@ const MessagesForm = props => {
                     console.log(err);
                     setErrors(e => e.concat(err));
                 });
-        }
+        };
         //if 100% completed
         //console.log('loaded');
         const tempErr = [];
@@ -150,7 +177,11 @@ const MessagesForm = props => {
                 uploadTask.snapshot.ref
                     .getDownloadURL()
                     .then(downloadUrl => {
-                        sendFileMessage(downloadUrl, getMessagesRef, pathToUpload);
+                        sendFileMessage(
+                            downloadUrl,
+                            getMessagesRef,
+                            pathToUpload
+                        );
                         setPercent(0);
                     })
                     .catch(err => {
@@ -159,12 +190,11 @@ const MessagesForm = props => {
                         setUploadState('error');
                         setUploadTask(null);
                         setPercent(0);
-                    })
+                    });
             }, 3000);
             return () => clearTimeout(timer);
         }
-    }, [percent, getMessagesRef, pathToUpload, createMessage, uploadTask])
-
+    }, [percent, getMessagesRef, pathToUpload, createMessage, uploadTask]);
 
     return (
         <Segment className="message__form">
@@ -176,8 +206,13 @@ const MessagesForm = props => {
                 label={<Button icon={'add'} />}
                 labelPosition="left"
                 placeholder="write your message"
-                className={errors.some(error => error.message.includes('message')) ? 'error' : ''}
+                className={
+                    errors.some(error => error.message.includes('message'))
+                        ? 'error'
+                        : ''
+                }
                 onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
             />
 
             <Button.Group icon widths="2">
@@ -197,19 +232,15 @@ const MessagesForm = props => {
                     onClick={openModal}
                     disabled={uploadState === 'uploading'}
                 />
-
             </Button.Group>
             <FileModal
                 modal={modal}
                 closeModal={closeModal}
                 uploadFile={uploadFile}
             />
-            <ProgressBar
-                uploadState={uploadState}
-                percent={percent}
-            />
+            <ProgressBar uploadState={uploadState} percent={percent} />
         </Segment>
     );
-}
+};
 
 export default MessagesForm;

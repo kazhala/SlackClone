@@ -44,6 +44,7 @@ const channelInputReducer = (currentState, action) => {
 //firebase databse listner reference
 const messagesRef = firebase.database().ref('messages');
 const channelRef = firebase.database().ref('channels');
+const typingRef = firebase.database().ref('typing');
 
 const Channels = props => {
     const { setChannel, setPrivateChannel, currentSelectedChannel } = props;
@@ -147,30 +148,31 @@ const Channels = props => {
     }, [messageChannel, notifications]);
 
     //call redux to set new seleted channel
-    const changeChannel = useCallback(
-        channel => {
-            setActiveChannel(channel.id);
-            //clear notification on entering a new channel
-            clearNotifications();
-            setChannel(channel);
-            setPrivateChannel(false);
-            if (!firstLoad) {
-                setMessageChannel(channel);
-            }
-        },
-        [setChannel, setPrivateChannel, firstLoad, clearNotifications]
-    );
-
-    const setFirstChannel = useCallback(() => {
-        if (firstLoad && snapshots.length > 0) {
-            changeChannel(snapshots[0]);
-            setFirstLoad(false);
-        }
-    }, [snapshots, firstLoad, changeChannel]);
+    const changeChannel = channel => {
+        setActiveChannel(channel.id);
+        //clear notification on entering a new channel
+        clearNotifications();
+        setChannel(channel);
+        setPrivateChannel(false);
+        setMessageChannel(channel);
+        typingRef
+            .child(currentSelectedChannel.id)
+            .child(props.user.uid)
+            .remove();
+    };
 
     useEffect(() => {
+        const setFirstChannel = () => {
+            if (firstLoad && snapshots.length > 0) {
+                setFirstLoad(false);
+                setActiveChannel(snapshots[0].id);
+                setChannel(snapshots[0]);
+                setPrivateChannel(false);
+                setMessageChannel(snapshots[0]);
+            }
+        };
         setFirstChannel();
-    }, [setFirstChannel]);
+    }, [snapshots, firstLoad, setPrivateChannel, setChannel]);
 
     //close the listners
     useEffect(() => {
