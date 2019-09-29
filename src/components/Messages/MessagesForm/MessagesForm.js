@@ -245,7 +245,13 @@ const MessagesForm = props => {
                 value={userInput}
                 name="message"
                 style={{ marginbottom: '0.7em' }}
-                label={<Button icon={'add'} onClick={handleTogglePicker} />}
+                label={
+                    <Button
+                        icon={emojiPicker ? 'close' : 'add'}
+                        content={emojiPicker ? 'Close' : null}
+                        onClick={handleTogglePicker}
+                    />
+                }
                 labelPosition="left"
                 ref={inputEl}
                 placeholder="write your message"

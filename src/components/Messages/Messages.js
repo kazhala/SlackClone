@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import firebase from '../../firebase';
 import { Segment, Comment } from 'semantic-ui-react';
 import MessagesHeader from './MessagesHeader/MessagesHeader';
@@ -22,6 +22,8 @@ const Messages = props => {
         isPrivateChannel,
         setUserPosts
     } = props;
+
+    const bottomEl = useRef(null);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
@@ -134,6 +136,15 @@ const Messages = props => {
             messagesRef.off();
         };
     }, []);
+
+    useEffect(() => {
+        const scrollToBottom = () => {
+            bottomEl.current.scrollIntoView({ behavior: 'smooth' });
+        };
+        if (bottomEl) {
+            scrollToBottom();
+        }
+    }, [snapshots, bottomEl]);
 
     const handleSearch = e => {
         setSearchTerm(e.target.value);
@@ -259,6 +270,7 @@ const Messages = props => {
                               />
                           ))}
                     {dispayTypingUsers()}
+                    <div ref={bottomEl}></div>
                 </Comment.Group>
             </Segment>
             <MessagesForm
