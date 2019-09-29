@@ -53,7 +53,11 @@ const Messages = props => {
                     .child(currentChannel.id)
                     .child(currentUser.uid)
                     .onDisconnect()
-                    .remove(err => console.timeLog(err));
+                    .remove(err => {
+                        if (err !== null) {
+                            console.log(err);
+                        }
+                    });
             }
         });
     }, [currentChannel, currentUser]);

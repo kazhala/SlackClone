@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import firebase from '../../../firebase';
 import uuidv4 from 'uuid/v4';
 import { Segment, Button, Input } from 'semantic-ui-react';
 import FileModal from '../FileModal/FileModal';
 import ProgressBar from '../ProgressBar/ProgressBar';
+import { Picker, emojiIndex } from 'emoji-mart';
+import 'emoji-mart/css/emoji-mart.css';
 
 const typingRef = firebase.database().ref('typing');
 const MessagesForm = props => {
     const { currentChannel, currentUser, getMessagesRef } = props;
+
+    const inputEl = useRef(null);
 
     //firebase storage reference
     const storageRef = firebase.storage().ref();
@@ -18,7 +22,7 @@ const MessagesForm = props => {
 
     //display loading for message sent button
     const [loading, setLoading] = useState(false);
-
+    const [emojiPicker, setEmojiPicker] = useState(false);
     const [errors, setErrors] = useState([]);
 
     //upload state for the image
@@ -152,6 +156,35 @@ const MessagesForm = props => {
         }
     }, [uploadTask]);
 
+    const handleTogglePicker = () => {
+        setEmojiPicker(prev => !prev);
+    };
+
+    const handleSelectEmoji = emoji => {
+        const oldMessage = userInput;
+        const newMessage = colonToUnicode(`${oldMessage} ${emoji.colons}`);
+        setEmojiPicker(false);
+        setTimeout(() => {
+            inputEl.current.focus();
+            setUserInput(newMessage);
+        }, 0);
+    };
+
+    const colonToUnicode = message => {
+        return message.replace(/:[A-Za-z0-9_+-]+:/g, x => {
+            x = x.replace(/:/g, '');
+            let emoji = emojiIndex.emojis[x];
+            if (typeof emoji !== 'undefined') {
+                let unicode = emoji.native;
+                if (typeof unicode !== 'undefined') {
+                    return unicode;
+                }
+            }
+            x = ':' + x + ':';
+            return x;
+        });
+    };
+
     //call back for finish uploading the image to the firebase storage
     useEffect(() => {
         //send set and store the image in the database
@@ -198,13 +231,23 @@ const MessagesForm = props => {
 
     return (
         <Segment className="message__form">
+            {emojiPicker && (
+                <Picker
+                    set="apple"
+                    className="emojipicker"
+                    title="Pick your emoji"
+                    emoji="point_up"
+                    onSelect={handleSelectEmoji}
+                />
+            )}
             <Input
                 fluid
                 value={userInput}
                 name="message"
                 style={{ marginbottom: '0.7em' }}
-                label={<Button icon={'add'} />}
+                label={<Button icon={'add'} onClick={handleTogglePicker} />}
                 labelPosition="left"
+                ref={inputEl}
                 placeholder="write your message"
                 className={
                     errors.some(error => error.message.includes('message'))
