@@ -13,6 +13,8 @@ import Typing from './Typing/Typing';
 const messagesRef = firebase.database().ref('messages');
 const privateMessagesRef = firebase.database().ref('privateMessages');
 const usersRef = firebase.database().ref('users');
+const typingRef = firebase.database().ref('typing');
+const connectedRef = firebase.database().ref('.info/connected');
 const Messages = props => {
     const {
         currentChannel,
@@ -39,11 +41,53 @@ const Messages = props => {
         usersRef.child(currentUser.uid).child('starred')
     );
 
+    //eslint-disable-next-line
+    const [typingSnap, typingLoading, typingError] = useList(
+        typingRef.child(currentChannel.id)
+    );
+
+    useEffect(() => {
+        connectedRef.on('value', snap => {
+            if (snap.val() === true) {
+                typingRef
+                    .child(currentChannel.id)
+                    .child(currentUser.uid)
+                    .onDisconnect()
+                    .remove(err => console.timeLog(err));
+            }
+        });
+    }, [currentChannel, currentUser]);
+
     //display the channel detail
     const displayChannelName = channel => {
         return channel
             ? `${props.isPrivateChannel ? '@' : '#'}${channel.name}`
             : '';
+    };
+
+    const dispayTypingUsers = () => {
+        return (
+            typingSnap.length > 0 &&
+            typingSnap.map(user => {
+                if (user.key !== currentUser.uid) {
+                    return (
+                        <div
+                            style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                marginBottom: '0.2em'
+                            }}
+                            key={user.key}
+                        >
+                            <span className="user__typing">
+                                {user.val()} is typing
+                            </span>{' '}
+                            <Typing />
+                        </div>
+                    );
+                }
+            })
+        );
     };
 
     //count the number of users in the channel
@@ -210,10 +254,7 @@ const Messages = props => {
                                   user={currentUser}
                               />
                           ))}
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <span className="user__typing">Kevin is typing</span>{' '}
-                        <Typing />
-                    </div>
+                    {dispayTypingUsers()}
                 </Comment.Group>
             </Segment>
             <MessagesForm
