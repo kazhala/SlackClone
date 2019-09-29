@@ -7,6 +7,7 @@ import Message from './Message/Message';
 import { useListVals, useList } from 'react-firebase-hooks/database';
 import { connect } from 'react-redux';
 import * as actionCreators from '../../actions/index';
+import Typing from './Typing/Typing';
 
 //firebase databse reference
 const messagesRef = firebase.database().ref('messages');
@@ -209,6 +210,10 @@ const Messages = props => {
                                   user={currentUser}
                               />
                           ))}
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span className="user__typing">Kevin is typing</span>{' '}
+                        <Typing />
+                    </div>
                 </Comment.Group>
             </Segment>
             <MessagesForm
