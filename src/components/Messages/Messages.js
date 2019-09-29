@@ -68,7 +68,7 @@ const Messages = props => {
     const dispayTypingUsers = () => {
         return (
             typingSnap.length > 0 &&
-            typingSnap.map(user => {
+            typingSnap.forEach(user => {
                 if (user.key !== currentUser.uid) {
                     return (
                         <div
