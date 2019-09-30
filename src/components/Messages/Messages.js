@@ -224,7 +224,7 @@ const Messages = props => {
     const displayMessagesSkeleton = () =>
         loading ? (
             <React.Fragment>
-                {[...Array(30)].map((_, i) => (
+                {[...Array(10)].map((_, i) => (
                     <MessageSkeleton key={i} />
                 ))}
             </React.Fragment>

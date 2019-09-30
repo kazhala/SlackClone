@@ -131,7 +131,7 @@ const MessagesForm = props => {
 
     const getPath = () => {
         if (props.isPrivateChannel) {
-            return `chat/private-${currentChannel.id}`;
+            return `chat/private/${currentChannel.id}`;
         } else {
             return `chat/public`;
         }
