@@ -41,8 +41,17 @@ const MessagesForm = props => {
         setUserInput(e.target.value);
     };
 
+    useEffect(() => {
+        if (inputEl) {
+            inputEl.current.focus();
+        }
+    }, []);
+
     //when user enters, store a entry of user in typing field
-    const handleKeyDown = () => {
+    const handleKeyDown = e => {
+        if (e.ctrlKey && e.keyCode === 13) {
+            sendMessage();
+        }
         if (userInput) {
             typingRef
                 .child(currentChannel.id)
