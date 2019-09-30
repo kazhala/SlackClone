@@ -1,5 +1,5 @@
 import React, { useState, useReducer, useEffect, useCallback } from 'react';
-import { useListVals, useListKeys } from 'react-firebase-hooks/database';
+import { useList } from 'react-firebase-hooks/database';
 import {
     Menu,
     Icon,
@@ -68,9 +68,7 @@ const Channels = props => {
 
     //firebase databse listner + data
     // eslint-disable-next-line
-    const [snapshots, loading, error] = useListVals(channelRef);
-    // eslint-disable-next-line
-    const [snapKeys, keyLoading, keyError] = useListKeys(channelRef);
+    const [snapshots, loading, error] = useList(channelRef);
 
     //notification listners, if new message is upload to the DB
     //check if it is the same channel, then display count
@@ -112,13 +110,13 @@ const Channels = props => {
         };
 
         //open a listner for each channel
-        if (snapKeys && !keyLoading) {
-            snapKeys.forEach(snap => {
-                messagesRef.child(snap).on('value', messageSnap => {
+        if (snapshots && !loading) {
+            snapshots.forEach(snap => {
+                messagesRef.child(snap.key).on('value', messageSnap => {
                     //once the messageChannel is set, start accepting channel notifications
                     if (messageChannel) {
                         handleNotifications(
-                            snap,
+                            snap.key,
                             messageChannel.id,
                             notifications,
                             messageSnap
@@ -127,7 +125,7 @@ const Channels = props => {
                 });
             });
         }
-    }, [messageChannel, notifications, snapKeys, keyLoading]);
+    }, [messageChannel, notifications, snapshots, loading]);
 
     //console.log(notifications);
 
@@ -166,19 +164,30 @@ const Channels = props => {
         const setFirstChannel = () => {
             if (firstLoad && snapshots.length > 0) {
                 setFirstLoad(false);
-                setActiveChannel(snapshots[0].id);
-                setChannel(snapshots[0]);
+                setActiveChannel(snapshots[0].val().id);
+                setChannel(snapshots[0].val());
                 setPrivateChannel(false);
-                setMessageChannel(snapshots[0]);
+                setMessageChannel(snapshots[0].val());
             }
         };
         setFirstChannel();
     }, [snapshots, firstLoad, setPrivateChannel, setChannel]);
 
     //close the listners
-    useEffect(() => {
+    /*     useEffect(() => {
         return () => {
             console.log('closed');
+            if (snapshots) {
+                snapshots.forEach(snap => {
+                    messagesRef.child(snap.key).off();
+                });
+            }
+            channelRef.off();
+        };
+    }, [snapshots]); */
+
+    useEffect(() => {
+        return () => {
             channelRef.off();
             messagesRef.off();
         };
@@ -258,18 +267,18 @@ const Channels = props => {
         return snapshots.length > 0 ? (
             snapshots.map(channel => (
                 <Menu.Item
-                    key={channel.id}
-                    onClick={() => changeChannel(channel)}
-                    name={channel.name}
+                    key={channel.val().id}
+                    onClick={() => changeChannel(channel.val())}
+                    name={channel.val().name}
                     style={{ opacity: 0.7 }}
-                    active={channel.id === activeChannel}
+                    active={channel.val().id === activeChannel}
                 >
-                    {getNotificationCount(channel) && (
+                    {getNotificationCount(channel.val()) && (
                         <Label color="red">
-                            {getNotificationCount(channel)}
+                            {getNotificationCount(channel.val())}
                         </Label>
                     )}
-                    # {channel.name}
+                    # {channel.val().name}
                 </Menu.Item>
             ))
         ) : (

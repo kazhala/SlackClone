@@ -19,6 +19,8 @@ import { useList } from 'react-firebase-hooks/database';
 const usersRef = firebase.database().ref('users');
 
 const ColorPanel = props => {
+    const { user } = props;
+
     const [modalOpen, setModalOpen] = useState(false);
 
     const [primary, setPrimary] = useState('');
@@ -28,8 +30,14 @@ const ColorPanel = props => {
 
     //listen and store the DB entry to snapShots
     const [snapShots, loading, error] = useList(
-        usersRef.child(`${props.user.uid}/colors`)
+        usersRef.child(`${user.uid}/colors`)
     );
+
+    useEffect(() => {
+        return () => {
+            usersRef.child(`${user.uid}/colors`).off();
+        };
+    }, [user]);
 
     //after loading the DB entries, display the stored color
     useEffect(() => {
@@ -67,7 +75,7 @@ const ColorPanel = props => {
     //save the color to the database
     const saveColors = (primaryColor, secondaryColor) => {
         usersRef
-            .child(`${props.user.uid}/colors`)
+            .child(`${user.uid}/colors`)
             .push()
             .update({
                 primaryColor,

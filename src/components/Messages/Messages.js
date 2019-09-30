@@ -81,9 +81,9 @@ const Messages = props => {
     const displayTypingUsers = () => {
         return (
             typingSnap.length > 0 &&
-            typingSnap.forEach(user => {
-                if (user.key !== currentUser.uid) {
-                    return (
+            typingSnap.map(user => {
+                return (
+                    user.key !== currentUser.uid && (
                         <div
                             style={{
                                 display: 'flex',
@@ -97,8 +97,8 @@ const Messages = props => {
                             </span>{' '}
                             <Typing />
                         </div>
-                    );
-                }
+                    )
+                );
             })
         );
     };
