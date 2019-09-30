@@ -48,6 +48,7 @@ const typingRef = firebase.database().ref('typing');
 
 const Channels = props => {
     const { setChannel, setPrivateChannel, currentSelectedChannel } = props;
+
     //handle modal display
     const [modal, setModal] = useState(false);
     //current channel

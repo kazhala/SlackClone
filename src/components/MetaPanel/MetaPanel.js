@@ -11,14 +11,17 @@ import {
 const MetaPanel = props => {
     const { isPrivateChannel, currentChannel, userPosts } = props;
 
+    //handle the selected accordion
     const [activeIndex, setActiveIndex] = useState(0);
 
+    //set a new accordion to open
     const setNewActiveIndex = (e, titleProps) => {
         const { index } = titleProps;
         const newIndex = activeIndex === index ? -1 : index;
         setActiveIndex(newIndex);
     };
 
+    //sort and display top3 posters of a channel
     const displayTopPosters = () => {
         return Object.entries(userPosts)
             .sort((a, b) => b[1].count - a[1].count)
@@ -39,6 +42,7 @@ const MetaPanel = props => {
             .slice(0, 3);
     };
 
+    //don't display anything if it's private channel
     if (isPrivateChannel) return null;
 
     return (

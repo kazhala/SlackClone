@@ -9,12 +9,13 @@ import { connect } from 'react-redux';
 import * as actionCreators from '../../actions/index';
 import Typing from './Typing/Typing';
 
-//firebase databse reference
+//firebase database reference
 const messagesRef = firebase.database().ref('messages');
 const privateMessagesRef = firebase.database().ref('privateMessages');
 const usersRef = firebase.database().ref('users');
 const typingRef = firebase.database().ref('typing');
 const connectedRef = firebase.database().ref('.info/connected');
+
 const Messages = props => {
     const {
         currentChannel,
@@ -23,14 +24,17 @@ const Messages = props => {
         setUserPosts
     } = props;
 
+    //bottom scroll div reference
     const bottomEl = useRef(null);
 
+    //state for handling search
     const [searchTerm, setSearchTerm] = useState('');
     const [searchLoading, setSearchLoading] = useState(false);
     const [searchResult, setSearchResult] = useState([]);
 
     //const [firstLoad, setFirstLoad] = useState(true);
 
+    //get the firebase reference based on isPrivateChannel
     const getMessagesRef = isPrivateChannel ? privateMessagesRef : messagesRef;
 
     //using installed firebase hooks to listen for changes
@@ -48,6 +52,7 @@ const Messages = props => {
         typingRef.child(currentChannel.id)
     );
 
+    //listen to current user, if user log out, remove it's typing entry in DB
     useEffect(() => {
         connectedRef.on('value', snap => {
             if (snap.val() === true) {
@@ -71,7 +76,8 @@ const Messages = props => {
             : '';
     };
 
-    const dispayTypingUsers = () => {
+    //if there's entry in DB, display typing animation
+    const displayTypingUsers = () => {
         return (
             typingSnap.length > 0 &&
             typingSnap.forEach(user => {
@@ -109,6 +115,7 @@ const Messages = props => {
         return display;
     };
 
+    //count the number of post each user has posted
     useEffect(() => {
         const countUserPosts = () => {
             const userPosts = snapshots.reduce((acc, message) => {
@@ -129,7 +136,7 @@ const Messages = props => {
         }
     }, [loading, snapshots, setUserPosts]);
 
-    //componentWillUnmount, cut of the listner when destructed
+    //componentWillUnmount, cut of the listener when destructed
     useEffect(() => {
         return () => {
             console.log('closed');
@@ -137,6 +144,8 @@ const Messages = props => {
         };
     }, []);
 
+    //after loading the page, scroll to bottom
+    //when new message is entered, scroll to bottom
     useEffect(() => {
         const scrollToBottom = () => {
             bottomEl.current.scrollIntoView({ behavior: 'smooth' });
@@ -151,12 +160,14 @@ const Messages = props => {
         setSearchLoading(true);
     };
 
-    //handle the user search input, set a timeout so that it won't re-render immediatly
+    //handle the user search input, set a timeout so that it won't re-render immediately
     //and also show a spinner
     useEffect(() => {
         if (searchLoading && snapshots) {
+            //set timeout for slight loading animation and not refresh immediately
             const timer = setTimeout(() => {
                 const channelMessages = [...snapshots];
+                //using regex to handle search filtering, set to global and ignore cases
                 const regex = new RegExp(searchTerm, 'gi');
                 const searchResults = channelMessages.reduce((acc, message) => {
                     if (
@@ -170,17 +181,21 @@ const Messages = props => {
                 setSearchResult(searchResults);
                 setSearchLoading(false);
             }, 1000);
+            //clear the timer when unmounted
             return () => clearTimeout(timer);
         }
     }, [searchLoading, snapshots, searchTerm]);
 
+    //check if the channel is starred and display accordinly
     const isChannelStarred = () => {
         let starredChannelIds = [];
         starredChannelIds = starSnap.map(snap => snap.key);
         return starredChannelIds.includes(currentChannel.id);
     };
 
+    //handle the action of user clicking on the star icon
     const handleStar = () => {
+        //if it is not starred, store a databse entry
         if (!isChannelStarred()) {
             usersRef.child(`${currentUser.uid}/starred`).update({
                 [currentChannel.id]: {
@@ -192,6 +207,7 @@ const Messages = props => {
                     }
                 }
             });
+            //else remove the entry
         } else {
             usersRef
                 .child(`${currentUser.uid}/starred`)
@@ -203,41 +219,6 @@ const Messages = props => {
                 });
         }
     };
-
-    /*
-    useEffect(() => {
-        const starChannel = () => {
-            if (isChannelStarred) {
-                usersRef
-                    .child(`${currentUser.uid}/starred`)
-                    .update({
-                        [currentChannel.id]: {
-                            name: currentChannel.name,
-                            details: currentChannel.details,
-                            createdBy: {
-                                name: currentChannel.createdBy.name,
-                                avatar: currentChannel.createdBy.avatar
-                            }
-                        }
-                    });
-            } else {
-                usersRef
-                    .child(`${currentUser.uid}/starred`)
-                    .child(currentChannel.id)
-                    .remove(err => {
-                        if (err !== null) {
-                            console.log(err);
-                        }
-                    })
-            }
-        }
-        console.log('test');
-        if (!firstLoad) {
-            starChannel();
-        }
-
-    }, [isChannelStarred, currentChannel, currentUser, firstLoad])
-    */
 
     return (
         <React.Fragment>
@@ -269,7 +250,7 @@ const Messages = props => {
                                   user={currentUser}
                               />
                           ))}
-                    {dispayTypingUsers()}
+                    {displayTypingUsers()}
                     <div ref={bottomEl}></div>
                 </Comment.Group>
             </Segment>

@@ -7,10 +7,13 @@ import ProgressBar from '../ProgressBar/ProgressBar';
 import { Picker, emojiIndex } from 'emoji-mart';
 import 'emoji-mart/css/emoji-mart.css';
 
+//firebase DB reference
 const typingRef = firebase.database().ref('typing');
+
 const MessagesForm = props => {
     const { currentChannel, currentUser, getMessagesRef } = props;
 
+    //input field reference, used for focus after selecting emoji
     const inputEl = useRef(null);
 
     //firebase storage reference
@@ -38,12 +41,14 @@ const MessagesForm = props => {
         setUserInput(e.target.value);
     };
 
+    //when user enters, store a entry of user in typing field
     const handleKeyDown = () => {
         if (userInput) {
             typingRef
                 .child(currentChannel.id)
                 .child(currentUser.uid)
                 .set(currentUser.displayName);
+            //if the input field is empty, clear the typing entry of user
         } else {
             typingRef
                 .child(currentChannel.id)
@@ -96,6 +101,7 @@ const MessagesForm = props => {
                 .then(() => {
                     setLoading(false);
                     setUserInput('');
+                    //remove the typing entry once the message is sent
                     typingRef
                         .child(currentChannel.id)
                         .child(currentUser.uid)
@@ -160,16 +166,21 @@ const MessagesForm = props => {
         setEmojiPicker(prev => !prev);
     };
 
+    //append the selected emoji to the existing input message
     const handleSelectEmoji = emoji => {
         const oldMessage = userInput;
         const newMessage = colonToUnicode(`${oldMessage} ${emoji.colons}`);
+        //close the emoji panel
         setEmojiPicker(false);
+        //focus back to the input field and then set the cursor to the end of the message
         setTimeout(() => {
             inputEl.current.focus();
             setUserInput(newMessage);
         }, 0);
     };
 
+    // ? not sure how this is done
+    // ? transform the text and emoji into appendable form and append
     const colonToUnicode = message => {
         return message.replace(/:[A-Za-z0-9_+-]+:/g, x => {
             x = x.replace(/:/g, '');
@@ -205,7 +216,7 @@ const MessagesForm = props => {
         const tempErr = [];
         if (percent === 100) {
             //get the image downloadURL and then store it in message so that it could be displayed in the chat
-            //set timeout to prevent large image firefox handling too slow
+            // !set timeout to prevent large image firebase handling too slow
             const timer = setTimeout(() => {
                 uploadTask.snapshot.ref
                     .getDownloadURL()

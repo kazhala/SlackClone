@@ -15,6 +15,7 @@ import { SliderPicker } from 'react-color';
 import firebase from '../../firebase';
 import { useList } from 'react-firebase-hooks/database';
 
+//firebase DB reference
 const usersRef = firebase.database().ref('users');
 
 const ColorPanel = props => {
@@ -25,10 +26,12 @@ const ColorPanel = props => {
 
     const [appColors, setAppColors] = useState([]);
 
+    //listen and store the DB entry to snapShots
     const [snapShots, loading, error] = useList(
         usersRef.child(`${props.user.uid}/colors`)
     );
 
+    //after loading the DB entries, display the stored color
     useEffect(() => {
         if (snapShots && !loading && !error) {
             const userColors = [];
@@ -61,6 +64,7 @@ const ColorPanel = props => {
         }
     };
 
+    //save the color to the database
     const saveColors = (primaryColor, secondaryColor) => {
         usersRef
             .child(`${props.user.uid}/colors`)
@@ -76,8 +80,8 @@ const ColorPanel = props => {
             .catch(err => console.log(err));
     };
 
+    //display the color stored in the appColor state as a visual block
     const displayUserColors = colors => {
-        //console.log(colors);
         return (
             colors.length > 0 &&
             colors.map((color, index) => (

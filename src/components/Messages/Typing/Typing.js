@@ -1,5 +1,6 @@
 import React from 'react';
 
+//typing animation
 const Typing = props => {
     return (
         <div className="typing">
