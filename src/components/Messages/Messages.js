@@ -8,6 +8,7 @@ import { useListVals, useList } from 'react-firebase-hooks/database';
 import { connect } from 'react-redux';
 import * as actionCreators from '../../actions/index';
 import Typing from './Typing/Typing';
+import MessageSkeleton from './MessageSkeleton/MessageSkeleton';
 
 //firebase database reference
 const messagesRef = firebase.database().ref('messages');
@@ -220,6 +221,15 @@ const Messages = props => {
         }
     };
 
+    const displayMessagesSkeleton = () =>
+        loading ? (
+            <React.Fragment>
+                {[...Array(30)].map((_, i) => (
+                    <MessageSkeleton key={i} />
+                ))}
+            </React.Fragment>
+        ) : null;
+
     return (
         <React.Fragment>
             <MessagesHeader
@@ -233,6 +243,7 @@ const Messages = props => {
             />
             <Segment>
                 <Comment.Group className="messages">
+                    {displayMessagesSkeleton()}
                     {searchTerm
                         ? searchResult.length > 0 &&
                           searchResult.map(message => (
